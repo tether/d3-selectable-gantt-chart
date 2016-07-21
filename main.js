@@ -4,7 +4,7 @@ var WIDTH = 960 - MARGIN.left - MARGIN.right;
 var BAR_HEIGHT = 25;
 var LEFT_PAD = 80;
 
-function extractActivityTypes (data) {
+function extractLabels (data) {
   function unique (value, index, array) {
     return array.indexOf(value) === index;
   }
@@ -13,14 +13,34 @@ function extractActivityTypes (data) {
              .filter(unique);
 }
 
-var createChart = function (data) {
-  var activityTypes = extractActivityTypes(data);
+function toDate (timeInSeconds) {
+  return new Date(timeInSeconds * 1000);
+}
+
+function defaultMinDate (data) {
+  return d3.min(data.map(function (d) {
+    return toDate(d.startedAt);
+  }));
+}
+
+function defaultMaxDate (data) {
+  return d3.max(data.map(function (d) {
+    return toDate(d.endedAt);
+  }));
+}
+
+var createChart = function (data, opts) {
+  var opts = opts || {};
+  opts.minDate = opts.minDate || defaultMinDate(data);
+  opts.maxDate = opts.maxDate || defaultMaxDate(data);
+
+  var labels = extractLabels(data);
   var baseSVG = d3.select('#chart')
                   .append('svg')
                   .attr('width', WIDTH);
   var chartData = baseSVG.append('g').attr('id', 'chart-data');
 
-  var chartHeight = activityTypes.length * BAR_HEIGHT;
+  var chartHeight = labels.length * BAR_HEIGHT;
   var selectionInfo = d3.select('#selection-info').append('ul');
   var activitiesInfo = d3.select('#selection-info').append('dl');
 
@@ -30,12 +50,12 @@ var createChart = function (data) {
     selectionInfo.append('li').text('End date: ' + timeRange[1]);
   }
 
-  function updateActivitiesInfo (bars) {
+  function updateBarsInformation (bars) {
     function isSelected (bar) { return bar.selected; }
     activitiesInfo.html('');
 
     bars.filter(isSelected).each(function (bar) {
-      activitiesInfo.append('dt').text('Activity type: ' + bar.label);
+      activitiesInfo.append('dt').text('Label: ' + bar.label);
       activitiesInfo.append('dd').text(bar);
     });
   }
@@ -68,17 +88,16 @@ var createChart = function (data) {
       }
     });
 
-    updateActivitiesInfo(bars);
+    updateBarsInformation(bars);
 
     bars.classed('selected', function (bar) {
      return bar.selected;
     });
   }
 
-  // TODO use actual dates coming from a filter in the page
   var timeScaler = d3.time
                      .scale()
-                     .domain([new Date('2016-07-06 00:00:01'), new Date('2016-07-06 23:59:59')])
+                     .domain([opts.minDate, opts.maxDate])
                      .range([LEFT_PAD, WIDTH]);
 
   var valueScale = d3.scale
@@ -86,10 +105,10 @@ var createChart = function (data) {
                      .domain([0, TWENTY_FOUR_HS_IN_SEC])
                      .range([0, WIDTH]);
 
-  var activitiesScale = d3.scale
-                          .ordinal()
-                          .domain(data.map(function(d) { return d.label; }))
-                          .rangeRoundBands([1, chartHeight]);
+  var labelsScale = d3.scale
+                      .ordinal()
+                      .domain(data.map(function(d) { return d.label; }))
+                      .rangeRoundBands([1, chartHeight]);
 
   var brush = d3.svg.brush();
   brush.x(timeScaler).on('brush', brushed);
@@ -101,7 +120,7 @@ var createChart = function (data) {
   var yAxis = d3.svg.axis()
                     .tickPadding([10])
                     .orient('right')
-                    .scale(activitiesScale);
+                    .scale(labelsScale);
 
   baseSVG.append('g').attr('class', 'brush')
                      .attr('opacity', '.3')
@@ -136,8 +155,7 @@ var createChart = function (data) {
          return timeScaler(new Date(d.startedAt * 1000));
        })
        .attr('y', function (d) {
-         var activityType = d.label;
-         return activityTypes.indexOf(activityType) * BAR_HEIGHT;
+         return labels.indexOf(d.label) * BAR_HEIGHT;
        })
        .attr('height', BAR_HEIGHT)
        .attr('width', function (d) {
