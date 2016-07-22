@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <style type="text/css">
+      * {
+        margin: 0px auto;
+        text-align: center;
+        font-family: sans-serif;
+      }
+
+      ul { list-style: none; }
+
+      h2 { margin: 30px auto; }
+
+      rect.selected { fill: red; }
+
+      #selection-info { display: flex; }
+    </style>
+  </head>
+  <body>
+    <h2>Chart playground</h2>
+    <div id="chart"></div>
+    <div id="selection-info"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.6.7/d3-tip.js"></script>
+    <script src="example.dist.js"></script>
+  </body>
+</html>

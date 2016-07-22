@@ -1,0 +1,3 @@
+node_modules
+example/*.dist.js
+.DS_Store

@@ -1,0 +1,23 @@
+{
+  "name": "d3-timeline-chart",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PetroFeed/d3-timeline-chart.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PetroFeed/d3-timeline-chart/issues"
+  },
+  "homepage": "https://github.com/PetroFeed/d3-timeline-chart#readme",
+  "devDependencies": {
+    "browserify": "^13.0.1",
+    "jshint": "^2.9.2"
+  }
+}
