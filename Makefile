@@ -10,7 +10,7 @@ node_modules: package.json
 
 .PHONY: serve
 serve: build.example
-	@ruby -run -e httpd example/
+	@ruby -run -e httpd example/ --port=8080
 
 .PHONY: build.example
 build.example:
