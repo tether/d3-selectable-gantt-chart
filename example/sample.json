@@ -1,36 +1,36 @@
 [
   {
-    "label": "stay",
+    "label": "sitting",
     "startedAt": 1467817234,
     "endedAt": 1467818332
   },
   {
-    "label": "stay",
+    "label": "sitting",
     "startedAt": 1467829218,
     "endedAt": 1467829643
   },
   {
-    "label": "trip",
+    "label": "driving",
     "startedAt": 1467836050,
     "endedAt": 1467836224
   },
   {
-    "label": "stay",
+    "label": "sitting",
     "startedAt": 1467829774,
     "endedAt": 1467830194
   },
   {
-    "label": "stay",
+    "label": "sitting",
     "startedAt": 1467830323,
     "endedAt": 1467830469
   },
   {
-    "label": "stay",
+    "label": "sitting",
     "startedAt": 1467830962,
     "endedAt": 1467833150
   },
   {
-    "label": "stay",
+    "label": "sitting",
     "startedAt": 1467836754,
     "endedAt": 1467842349
   }
