@@ -1,8 +1,3 @@
-var MARGIN = {top: 200, right: 40, bottom: 200, left: 40};
-var WIDTH = 960 - MARGIN.left - MARGIN.right;
-var BAR_HEIGHT = 25;
-var LEFT_PAD = 80;
-
 function extractLabels (data) {
   function unique (value, index, array) {
     return array.indexOf(value) === index;
@@ -28,18 +23,27 @@ function defaultMaxDate (data) {
   }));
 }
 
-var createChart = function (data, opts) {
-  opts = opts || {};
-  opts.minDate = opts.minDate || defaultMinDate(data);
-  opts.maxDate = opts.maxDate || defaultMaxDate(data);
+function initialize (element, data, opts) {
+  opts           = opts || {};
+  opts.minDate   = opts.minDate || defaultMinDate(data);
+  opts.maxDate   = opts.maxDate || defaultMaxDate(data);
+  opts.leftPad   = opts.leftPad || 80;
+  opts.barHeight = opts.barHeight || 25;
+  opts.margin    = { top: 200, right: 40, bottom: 200, left: 40 };
+  opts.width     = 960 - opts.margin.left - opts.margin.right;
 
+  return opts;
+}
+
+var createChart = function (element, data, opts) {
+  opts = initialize(element, data, opts);
   var labels = extractLabels(data);
-  var baseSVG = d3.select('#chart')
+  var baseSVG = d3.select(element)
                   .append('svg')
-                  .attr('width', WIDTH);
+                  .attr('width', opts.width);
   var chartData = baseSVG.append('g').attr('id', 'chart-data');
 
-  var chartHeight = labels.length * BAR_HEIGHT;
+  var chartHeight = labels.length * opts.barHeight;
   var selectionInfo = d3.select('#selection-info').append('ul');
   var activitiesInfo = d3.select('#selection-info').append('dl');
 
@@ -98,7 +102,7 @@ var createChart = function (data, opts) {
   var timeScale = d3.time
                      .scale()
                      .domain([opts.minDate, opts.maxDate])
-                     .range([LEFT_PAD, WIDTH]);
+                     .range([opts.leftPad, opts.width]);
 
   var labelsScale = d3.scale
                       .ordinal()
@@ -136,9 +140,9 @@ var createChart = function (data, opts) {
   chartData.selectAll('.yaxis line')
        .attr('stroke', 'black')
        .attr('x1', 0)
-       .attr('x2', WIDTH)
-       .attr('y1', BAR_HEIGHT / 2)
-       .attr('y2', BAR_HEIGHT / 2);
+       .attr('x2', opts.width)
+       .attr('y1', opts.barHeight / 2)
+       .attr('y2', opts.barHeight / 2);
 
   chartData.append('g')
        .selectAll('rect')
@@ -152,7 +156,7 @@ var createChart = function (data, opts) {
        .attr('y', function (d) {
          return labelsScale(d.label);
        })
-       .attr('height', BAR_HEIGHT)
+       .attr('height', opts.barHeight)
        .attr('width', function (d) {
          var startedAt = new Date(d.startedAt * 1000);
          var endedAt = new Date(d.endedAt * 1000);
