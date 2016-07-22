@@ -1,7 +1,7 @@
 {
   "name": "d3-selectable-gantt-chart",
   "version": "1.0.0",
-  "description": "",
+  "description": "A selectable gantt chart in d3",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/PetroFeed/d3-selectable-gantt-chart.git"
   },
-  "author": "",
+  "author": "PetroFeed",
   "license": "Creative Commons",
   "bugs": {
     "url": "https://github.com/PetroFeed/d3-selectable-gantt-chart/issues"
