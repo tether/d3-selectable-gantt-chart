@@ -7,5 +7,5 @@ d3.json('http://localhost:8080/sample.json', function (data) {
     maxDate: new Date(2016, 6, 6, 23, 59, 59)
   };
 
- timelineChart(chartElement, data, opts);
+  timelineChart(chartElement, data, opts);
 });
