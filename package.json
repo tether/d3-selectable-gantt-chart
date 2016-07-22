@@ -1,5 +1,5 @@
 {
-  "name": "d3-timeline-chart",
+  "name": "d3-selectable-gantt-chart",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PetroFeed/d3-timeline-chart.git"
+    "url": "git+https://github.com/PetroFeed/d3-selectable-gantt-chart.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "Creative Commons",
   "bugs": {
-    "url": "https://github.com/PetroFeed/d3-timeline-chart/issues"
+    "url": "https://github.com/PetroFeed/d3-selectable-gantt-chart/issues"
   },
-  "homepage": "https://github.com/PetroFeed/d3-timeline-chart#readme",
+  "homepage": "https://github.com/PetroFeed/d3-selectable-gantt-chart#readme",
   "devDependencies": {
     "browserify": "^13.0.1",
     "jshint": "^2.9.2"
