@@ -100,13 +100,6 @@ var createChart = function (data, opts) {
                      .domain([opts.minDate, opts.maxDate])
                      .range([LEFT_PAD, WIDTH]);
 
-  var boundaryInSeconds = Math.floor((opts.maxDate.getTime() - opts.minDate.getTime()) / 1000);
-
-  var secondsScale = d3.scale
-                     .linear()
-                     .domain([0, boundaryInSeconds])
-                     .range([0, WIDTH]);
-
   var labelsScale = d3.scale
                       .ordinal()
                       .domain(data.map(function(d) { return d.label; }))
@@ -161,7 +154,10 @@ var createChart = function (data, opts) {
        })
        .attr('height', BAR_HEIGHT)
        .attr('width', function (d) {
-         return secondsScale(d.endedAt - d.startedAt);
+         var startedAt = new Date(d.startedAt * 1000);
+         var endedAt = new Date(d.endedAt * 1000);
+
+         return timeScale(endedAt) - timeScale(startedAt);
        });
 };
 
