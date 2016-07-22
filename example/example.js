@@ -1,11 +1,34 @@
 var timelineChart = require('../main');
 
+var selectionInfo  = d3.select('#selection-info').append('ul');
+var activitiesInfo = d3.select('#selection-info').append('dl');
+
+function updateSelectionInfo (timeRange) {
+  selectionInfo.html('');
+  selectionInfo.append('li').text('Start date: ' + timeRange[0]);
+  selectionInfo.append('li').text('End date: ' + timeRange[1]);
+}
+
+function updateBarsInformation (bars) {
+  activitiesInfo.html('');
+
+  bars.each(function (bar) {
+    activitiesInfo.append('dt').text('Label: ' + bar.label);
+    activitiesInfo.append('dd').text('Bar start: ' + new Date(bar.startedAt * 1000));
+    activitiesInfo.append('dd').text('Bar end: ' + new Date(bar.endedAt * 1000));
+  });
+}
+
 d3.json('http://localhost:8080/sample.json', function (data) {
   var chartElement = document.getElementById('chart');
   var opts = {
     minDate: new Date(2016, 6, 6, 0, 0, 1),
-    maxDate: new Date(2016, 6, 6, 23, 59, 59)
+    maxDate: new Date(2016, 6, 6, 23, 59, 59),
+    onBrush: function(timeRange, selectedBars) {
+      updateSelectionInfo(timeRange);
+      updateBarsInformation(selectedBars);
+    }
   };
 
-  timelineChart(chartElement, data, opts);
+  timelineChart(chartElement, data, opts)
 });

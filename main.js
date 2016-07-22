@@ -42,33 +42,12 @@ var createChart = function (element, data, opts) {
   var baseSVG        = d3.select(element).append('svg').attr('width', opts.width);
   var chartData      = baseSVG.append('g').attr('id', 'chart-data');
   var chartHeight    = labels.length * opts.barHeight;
-  var selectionInfo  = d3.select('#selection-info').append('ul');
-  var activitiesInfo = d3.select('#selection-info').append('dl');
-
-  function updateSelectionInfo (timeRange) {
-    selectionInfo.html('');
-    selectionInfo.append('li').text('Start date: ' + timeRange[0]);
-    selectionInfo.append('li').text('End date: ' + timeRange[1]);
-  }
-
-  function updateBarsInformation (bars) {
-    function isSelected (bar) { return bar.selected; }
-    activitiesInfo.html('');
-
-    bars.filter(isSelected).each(function (bar) {
-      activitiesInfo.append('dt').text('Label: ' + bar.label);
-      activitiesInfo.append('dd').text('Bar start: ' + new Date(bar.startedAt * 1000));
-      activitiesInfo.append('dd').text('Bar end: ' + new Date(bar.endedAt * 1000));
-    });
-  }
 
   function brushed () {
     var timeRange  = brush.extent();
     var bars       = d3.selectAll('rect.bar');
     var brushStart = Math.floor(timeRange[0].getTime() / 1000);
     var brushEnd   = Math.floor(timeRange[1].getTime() / 1000);
-
-    updateSelectionInfo(timeRange);
 
     bars.each(function (bar) {
       bar.selected = false;
@@ -90,11 +69,11 @@ var createChart = function (element, data, opts) {
       }
     });
 
-    updateBarsInformation(bars);
-
     bars.classed('selected', function (bar) {
      return bar.selected;
     });
+
+    opts.onBrush && opts.onBrush(timeRange, d3.selectAll('rect.selected'));
   }
 
   var timeScale = d3.time
