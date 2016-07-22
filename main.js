@@ -30,7 +30,7 @@ function initialize (element, data, opts) {
   opts.leftPad   = opts.leftPad || 80;
   opts.barHeight = opts.barHeight || 25;
   opts.margin    = { top: 200, right: 40, bottom: 200, left: 40 };
-  opts.width     = 960 - opts.margin.left - opts.margin.right;
+  opts.width     = element.clientWidth - opts.margin.left - opts.margin.right;
 
   return opts;
 }
