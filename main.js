@@ -73,7 +73,9 @@ var createChart = function (element, data, opts) {
      return bar.selected;
     });
 
-    opts.onBrush && opts.onBrush(timeRange, d3.selectAll('rect.selected'));
+    if (opts.onBrush) {
+      opts.onBrush(timeRange, d3.selectAll('rect.selected'));
+    }
   }
 
   var timeScale = d3.time
