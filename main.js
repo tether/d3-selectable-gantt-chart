@@ -1,4 +1,3 @@
-var TWENTY_FOUR_HS_IN_SEC = 86400;
 var MARGIN = {top: 200, right: 40, bottom: 200, left: 40};
 var WIDTH = 960 - MARGIN.left - MARGIN.right;
 var BAR_HEIGHT = 25;
@@ -30,7 +29,7 @@ function defaultMaxDate (data) {
 }
 
 var createChart = function (data, opts) {
-  var opts = opts || {};
+  opts = opts || {};
   opts.minDate = opts.minDate || defaultMinDate(data);
   opts.maxDate = opts.maxDate || defaultMaxDate(data);
 
@@ -56,7 +55,8 @@ var createChart = function (data, opts) {
 
     bars.filter(isSelected).each(function (bar) {
       activitiesInfo.append('dt').text('Label: ' + bar.label);
-      activitiesInfo.append('dd').text(bar);
+      activitiesInfo.append('dd').text('Bar start: ' + new Date(bar.startedAt * 1000));
+      activitiesInfo.append('dd').text('Bar end: ' + new Date(bar.endedAt * 1000));
     });
   }
 
@@ -72,15 +72,15 @@ var createChart = function (data, opts) {
       bar.selected = false;
 
       function brushStartInsideBar () {
-        return brushStart > bar.startedAt && brushStart < bar.endedAt;
+        return brushStart >= bar.startedAt && brushStart <= bar.endedAt;
       }
 
       function brushEndInsideBar () {
-        return brushEnd > bar.startedAt && brushEnd < bar.endedAt;
+        return brushEnd >= bar.startedAt && brushEnd <= bar.endedAt;
       }
 
       function barInsideBrush () {
-        return brushStart < bar.startedAt && brushEnd > bar.endedAt;
+        return brushStart <= bar.startedAt && brushEnd >= bar.endedAt;
       }
 
       if (brushStartInsideBar() || brushEndInsideBar() || barInsideBrush()) {
@@ -95,14 +95,16 @@ var createChart = function (data, opts) {
     });
   }
 
-  var timeScaler = d3.time
+  var timeScale = d3.time
                      .scale()
                      .domain([opts.minDate, opts.maxDate])
                      .range([LEFT_PAD, WIDTH]);
 
-  var valueScale = d3.scale
+  var boundaryInSeconds = Math.floor((opts.maxDate.getTime() - opts.minDate.getTime()) / 1000);
+
+  var secondsScale = d3.scale
                      .linear()
-                     .domain([0, TWENTY_FOUR_HS_IN_SEC])
+                     .domain([0, boundaryInSeconds])
                      .range([0, WIDTH]);
 
   var labelsScale = d3.scale
@@ -111,11 +113,11 @@ var createChart = function (data, opts) {
                       .rangeRoundBands([1, chartHeight]);
 
   var brush = d3.svg.brush();
-  brush.x(timeScaler).on('brush', brushed);
+  brush.x(timeScale).on('brush', brushed);
 
   var xAxis = d3.svg.axis()
                     .ticks(d3.time.hours, 2)
-                    .scale(timeScaler);
+                    .scale(timeScale);
 
   var yAxis = d3.svg.axis()
                     .tickPadding([10])
@@ -152,14 +154,14 @@ var createChart = function (data, opts) {
        .append('rect')
        .attr('class', 'bar')
        .attr('x', function (d) {
-         return timeScaler(new Date(d.startedAt * 1000));
+         return timeScale(new Date(d.startedAt * 1000));
        })
        .attr('y', function (d) {
          return labelsScale(d.label);
        })
        .attr('height', BAR_HEIGHT)
        .attr('width', function (d) {
-         return valueScale(d.endedAt - d.startedAt);
+         return secondsScale(d.endedAt - d.startedAt);
        });
 };
 
