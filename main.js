@@ -142,8 +142,8 @@ var createChart = function (data, opts) {
        .attr('stroke', 'black')
        .attr('x1', 0)
        .attr('x2', WIDTH)
-       .attr('y1', (BAR_HEIGHT / 2) - 1)
-       .attr('y2', (BAR_HEIGHT / 2) - 1);
+       .attr('y1', BAR_HEIGHT / 2)
+       .attr('y2', BAR_HEIGHT / 2);
 
   chartData.append('g')
        .selectAll('rect')
@@ -155,7 +155,7 @@ var createChart = function (data, opts) {
          return timeScaler(new Date(d.startedAt * 1000));
        })
        .attr('y', function (d) {
-         return labels.indexOf(d.label) * BAR_HEIGHT;
+         return labelsScale(d.label);
        })
        .attr('height', BAR_HEIGHT)
        .attr('width', function (d) {
