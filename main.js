@@ -35,11 +35,21 @@ function initialize (element, data, opts) {
   return opts;
 }
 
-var createChart = function (element, data, opts) {
+var brush = d3.svg.brush();
+
+var clearBrush = function clearBrush() {
+  d3.selectAll('rect.selected').classed('selected', false);
+  d3.selectAll('#selectable-gantt-chart .brush').call(brush.clear());
+};
+
+var createChart = function createChart (element, data, opts) {
   opts               = initialize(element, data, opts);
 
   var labels         = extractLabels(data);
-  var baseSVG        = d3.select(element).append('svg').attr('width', opts.width);
+  var baseSVG        = d3.select(element)
+                         .append('svg')
+                         .attr('id', 'selectable-gantt-chart')
+                         .attr('width', opts.width);
   var chartData      = baseSVG.append('g').attr('id', 'chart-data');
   var chartHeight    = labels.length * opts.barHeight;
 
@@ -88,7 +98,6 @@ var createChart = function (element, data, opts) {
                       .domain(data.map(function(d) { return d.label; }))
                       .rangeRoundBands([1, chartHeight]);
 
-  var brush = d3.svg.brush();
   brush.x(timeScale).on('brush', brushed);
 
   var xAxis = d3.svg.axis()
@@ -144,4 +153,7 @@ var createChart = function (element, data, opts) {
            });
 };
 
-module.exports = createChart;
+module.exports = {
+  create: createChart,
+  clearBrush: clearBrush
+};

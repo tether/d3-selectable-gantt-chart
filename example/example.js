@@ -3,6 +3,13 @@ var timelineChart = require('../main');
 var selectionInfo  = d3.select('#selection-info').append('ul');
 var activitiesInfo = d3.select('#selection-info').append('dl');
 
+var clearBrushButton = document.getElementById('clearBrush');
+clearBrushButton.onclick = function clearBrush () {
+  selectionInfo.html('');
+  activitiesInfo.html('');
+  timelineChart.clearBrush();
+};
+
 function updateSelectionInfo (timeRange) {
   selectionInfo.html('');
   selectionInfo.append('li').text('Start date: ' + timeRange[0]);
@@ -30,5 +37,5 @@ d3.json('http://localhost:8080/sample.json', function (data) {
     }
   };
 
-  timelineChart(chartElement, data, opts)
+  timelineChart.create(chartElement, data, opts)
 });
