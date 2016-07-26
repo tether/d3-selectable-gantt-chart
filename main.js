@@ -110,9 +110,11 @@ var createChart = function createChart (element, data, opts) {
   brush.x(timeScale).on('brush', brushed);
   brush.x(timeScale).on('brushend', brushEnded);
 
+  var xAxisOffset = chartHeight + 10;
   var xAxis = d3.svg.axis()
-                    .ticks(d3.time.hours, 2)
-                    .scale(timeScale);
+                    .ticks(d3.time.hours, 1)
+                    .scale(timeScale)
+                    .tickSize(xAxisOffset * -1, 0, 0);
 
   var yAxis = d3.svg.axis()
                     .tickPadding([10])
@@ -127,7 +129,7 @@ var createChart = function createChart (element, data, opts) {
 
   chartData.append('g')
            .attr('class', 'xaxis')
-           .attr('transform', 'translate(0,' + (chartHeight + 10) + ')')
+           .attr('transform', 'translate(0,' + xAxisOffset + ')')
            .call(xAxis);
 
   chartData.append('g')
