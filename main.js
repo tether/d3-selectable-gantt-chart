@@ -24,13 +24,14 @@ function defaultMaxDate (data) {
 }
 
 function initialize (element, data, opts) {
-  opts           = opts || {};
-  opts.minDate   = opts.minDate || defaultMinDate(data);
-  opts.maxDate   = opts.maxDate || defaultMaxDate(data);
-  opts.leftPad   = opts.leftPad || 80;
-  opts.barHeight = opts.barHeight || 25;
-  opts.margin    = { top: 200, right: 40, bottom: 200, left: 40 };
-  opts.width     = element.clientWidth - opts.margin.left - opts.margin.right;
+  opts             = opts || {};
+  opts.minDate     = opts.minDate || defaultMinDate(data);
+  opts.maxDate     = opts.maxDate || defaultMaxDate(data);
+  opts.leftPad     = opts.leftPad || 80;
+  opts.barHeight   = opts.barHeight || 25;
+  opts.xAxisHeight = opts.xAxisHeight || 60;
+  opts.margin      = { top: 200, right: 40, bottom: 200, left: 40 };
+  opts.width       = element.clientWidth - opts.margin.left - opts.margin.right;
 
   return opts;
 }
@@ -46,12 +47,14 @@ var createChart = function createChart (element, data, opts) {
   opts               = initialize(element, data, opts);
 
   var labels         = extractLabels(data);
+  var chartHeight    = labels.length * opts.barHeight;
+  var svgHeight      = chartHeight + opts.xAxisHeight;
   var baseSVG        = d3.select(element)
                          .append('svg')
                          .attr('id', 'selectable-gantt-chart')
-                         .attr('width', opts.width);
+                         .attr('width', opts.width)
+                         .attr('height', svgHeight);
   var chartData      = baseSVG.append('g').attr('id', 'chart-data');
-  var chartHeight    = labels.length * opts.barHeight;
 
   function brushed () {
     var timeRange  = brush.extent();
