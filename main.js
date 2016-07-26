@@ -91,6 +91,12 @@ var createChart = function createChart (element, data, opts) {
     }
   }
 
+  function brushEnded () {
+    if (opts.onBrushEnd) {
+      opts.onBrushEnd(brush.extent(), d3.selectAll('rect.selected'));
+    }
+  }
+
   var timeScale = d3.time
                     .scale()
                     .domain([opts.minDate, opts.maxDate])
@@ -102,6 +108,7 @@ var createChart = function createChart (element, data, opts) {
                       .rangeRoundBands([1, chartHeight]);
 
   brush.x(timeScale).on('brush', brushed);
+  brush.x(timeScale).on('brushend', brushEnded);
 
   var xAxis = d3.svg.axis()
                     .ticks(d3.time.hours, 2)
