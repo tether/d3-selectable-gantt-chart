@@ -100,7 +100,8 @@ var createChart = function createChart (element, data, opts) {
   var timeScale = d3.time
                     .scale()
                     .domain([opts.minDate, opts.maxDate])
-                    .range([opts.leftPad, opts.width]);
+                    .range([opts.leftPad, opts.width])
+                    .clamp(true);
 
   var labelsScale = d3.scale
                       .ordinal()

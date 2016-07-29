@@ -15,6 +15,11 @@
     "endedAt": 1467836224
   },
   {
+    "label": "driving",
+    "startedAt": 1467736050,
+    "endedAt": 1467835500
+  },
+  {
     "label": "sitting",
     "startedAt": 1467829774,
     "endedAt": 1467830194
@@ -33,5 +38,10 @@
     "label": "sitting",
     "startedAt": 1467836754,
     "endedAt": 1467842349
+  },
+  {
+    "label": "running",
+    "startedAt": 1467783800,
+    "endedAt": 1467786800
   }
 ]
