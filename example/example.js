@@ -16,14 +16,16 @@ function updateSelectionInfo (timeRange) {
   selectionInfo.append('li').text('End date: ' + timeRange[1]);
 }
 
+function appendBarInformation(bar) {
+  activitiesInfo.append('dt').text('Label: ' + bar.label);
+  activitiesInfo.append('dd').text('Bar start: ' + new Date(bar.startedAt * 1000));
+  activitiesInfo.append('dd').text('Bar end: ' + new Date(bar.endedAt * 1000));
+}
+
 function updateBarsInformation (bars) {
   activitiesInfo.html('');
 
-  bars.each(function (bar) {
-    activitiesInfo.append('dt').text('Label: ' + bar.label);
-    activitiesInfo.append('dd').text('Bar start: ' + new Date(bar.startedAt * 1000));
-    activitiesInfo.append('dd').text('Bar end: ' + new Date(bar.endedAt * 1000));
-  });
+  bars.forEach(appendBarInformation);
 }
 
 d3.json('http://localhost:8080/sample.json', function (data) {
@@ -36,6 +38,11 @@ d3.json('http://localhost:8080/sample.json', function (data) {
     },
     onBrushEnd: function(timeRange, selectedBars) {
       updateBarsInformation(selectedBars);
+    },
+    onBarClicked: function(bar) {
+      activitiesInfo.html('');
+      selectionInfo.html('');
+      appendBarInformation(bar);
     }
   };
 
