@@ -46,5 +46,5 @@ d3.json('http://localhost:8080/sample.json', function (data) {
     }
   };
 
-  timelineChart.create(chartElement, data, opts)
+  timelineChart.create(chartElement, data, opts);
 });
