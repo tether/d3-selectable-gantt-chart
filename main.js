@@ -70,6 +70,13 @@ var createChart = function createChart (element, data, opts) {
                       .domain(data.map(function(d) { return d.label; }))
                       .rangeRoundBands([1, chartHeight]);
 
+  function barWidth (d) {
+    var startedAt = new Date(d.startedAt * 1000);
+    var endedAt = new Date(d.endedAt * 1000);
+
+    return timeScale(endedAt) - timeScale(startedAt);
+  }
+
   function isBarClicked(bar) {
     var y = d3.mouse(d3.select('g.brush').node())[1];
 
@@ -116,11 +123,94 @@ var createChart = function createChart (element, data, opts) {
       return bar.selected;
     });
 
+    function enableDragging (selectedData) {
+      function onDragLeft (d) {
+        var currentX = timeScale(new Date(d.startedAt * 1000));
+        var newX = currentX + d3.event.dx;
+        var newTime = timeScale.invert(newX);
+
+        d.startedAt = newTime.getTime() / 1000;
+
+        d3.select('rect.selected')
+          .attr('x', newX)
+          .attr('width', barWidth);
+
+        d3.select('rect#dragLeft')
+          .attr('x', newX - (dragBarSize / 2));
+      }
+
+      function onDragRight (d) {
+        var currentX = timeScale(new Date(d.endedAt * 1000));
+        var newX = currentX + d3.event.dx;
+        var newTime = timeScale.invert(newX);
+
+        d.endedAt = newTime.getTime() / 1000;
+
+        d3.select('rect.selected')
+          .attr('width', barWidth);
+
+        d3.select('rect#dragRight')
+          .attr('x', newX - (dragBarSize / 2));
+      }
+
+      var dragLeft = d3.behavior.drag()
+        .origin(Object)
+        .on('drag', onDragLeft);
+
+      var dragRight = d3.behavior.drag()
+        .origin(Object)
+        .on('drag', onDragRight);
+
+      var selection = chartData.append('g')
+        .attr('id', 'selectionDragComponent')
+        .selectAll('rect')
+        .data([selectedData])
+        .enter();
+
+      var dragBarSize = 10;
+
+      function dragBarX (fieldName) {
+        return function x (d) {
+          return timeScale(new Date(d[fieldName] * 1000)) - (dragBarSize / 2);
+        };
+      }
+
+      var dragBarLeft = selection.append('rect')
+        .attr('x', dragBarX('startedAt'))
+        .attr('y', function (d) {
+          return labelsScale(d.label);
+        })
+        .attr('height', opts.barHeight)
+        .attr('width', dragBarSize)
+        .attr('id', 'dragLeft')
+        .attr('fill', 'blue')
+        .attr('fill-opacity', .3)
+        .attr('cursor', 'ew-resize')
+        .call(dragLeft);
+
+      var dragBarRight = selection.append('rect')
+        .attr('x', dragBarX('endedAt'))
+        .attr('y', function (d) {
+          return labelsScale(d.label);
+        })
+        .attr('height', opts.barHeight)
+        .attr('width', dragBarSize)
+        .attr('id', 'dragRight')
+        .attr('fill', 'blue')
+        .attr('fill-opacity', .3)
+        .attr('cursor', 'ew-resize')
+        .call(dragRight);
+
+        d3.select('.brush').attr('style', 'display: none;'); // TODO: HACK to disable brush temporarily
+    }
+
     var selection = d3.selectAll('rect.selected');
 
     if (brush.empty()) {
       if (!selection.empty()) {
-        opts.onBarClicked(selection.data()[0]);
+        var selectedData = selection.data()[0];
+        opts.onBarClicked(selectedData);
+        enableDragging(selectedData);
       }
     } else {
       opts.onBrush(timeRange, selection.data());
@@ -183,12 +273,7 @@ var createChart = function createChart (element, data, opts) {
              return labelsScale(d.label);
            })
            .attr('height', opts.barHeight)
-           .attr('width', function (d) {
-             var startedAt = new Date(d.startedAt * 1000);
-             var endedAt = new Date(d.endedAt * 1000);
-
-             return timeScale(endedAt) - timeScale(startedAt);
-           });
+           .attr('width', barWidth);
 };
 
 module.exports = {
