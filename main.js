@@ -70,11 +70,15 @@ var createChart = function createChart (element, data, opts) {
                       .domain(data.map(function(d) { return d.label; }))
                       .rangeRoundBands([1, chartHeight]);
 
-  function barWidth (d) {
+  function computeBarWidth (d) {
     var startedAt = new Date(d.startedAt * 1000);
     var endedAt = new Date(d.endedAt * 1000);
 
     return timeScale(endedAt) - timeScale(startedAt);
+  }
+
+  function computeBarY (d) {
+    return labelsScale(d.label);
   }
 
   function isBarClicked(bar) {
@@ -133,7 +137,7 @@ var createChart = function createChart (element, data, opts) {
 
         d3.select('rect.selected')
           .attr('x', newX)
-          .attr('width', barWidth);
+          .attr('width', computeBarWidth);
 
         d3.select('rect#dragLeft')
           .attr('x', newX - (dragBarSize / 2));
@@ -147,7 +151,7 @@ var createChart = function createChart (element, data, opts) {
         d.endedAt = newTime.getTime() / 1000;
 
         d3.select('rect.selected')
-          .attr('width', barWidth);
+          .attr('width', computeBarWidth);
 
         d3.select('rect#dragRight')
           .attr('x', newX - (dragBarSize / 2));
@@ -177,27 +181,23 @@ var createChart = function createChart (element, data, opts) {
 
       var dragBarLeft = selection.append('rect')
         .attr('x', dragBarX('startedAt'))
-        .attr('y', function (d) {
-          return labelsScale(d.label);
-        })
+        .attr('y', computeBarY)
         .attr('height', opts.barHeight)
         .attr('width', dragBarSize)
         .attr('id', 'dragLeft')
         .attr('fill', 'blue')
-        .attr('fill-opacity', .3)
+        .attr('fill-opacity', 0.3)
         .attr('cursor', 'ew-resize')
         .call(dragLeft);
 
       var dragBarRight = selection.append('rect')
         .attr('x', dragBarX('endedAt'))
-        .attr('y', function (d) {
-          return labelsScale(d.label);
-        })
+        .attr('y', computeBarY)
         .attr('height', opts.barHeight)
         .attr('width', dragBarSize)
         .attr('id', 'dragRight')
         .attr('fill', 'blue')
-        .attr('fill-opacity', .3)
+        .attr('fill-opacity', 0.3)
         .attr('cursor', 'ew-resize')
         .call(dragRight);
 
@@ -269,11 +269,9 @@ var createChart = function createChart (element, data, opts) {
            .attr('x', function (d) {
              return timeScale(new Date(d.startedAt * 1000));
            })
-           .attr('y', function (d) {
-             return labelsScale(d.label);
-           })
+           .attr('y', computeBarY)
            .attr('height', opts.barHeight)
-           .attr('width', barWidth);
+           .attr('width', computeBarWidth);
 };
 
 module.exports = {
