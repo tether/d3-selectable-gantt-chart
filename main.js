@@ -38,12 +38,33 @@ function initialize (element, data, opts) {
 
   return opts;
 }
-
 var brush = d3.svg.brush();
+
+function addBrush (height) {
+  d3.select('#selectable-gantt-chart').append('g')
+    .attr('class', 'brush')
+    .attr('opacity', '.3')
+    .call(brush)
+    .selectAll('rect')
+    .attr('height', height || d3.select('#chart-data>#bars').attr('height'));
+}
+
+function removeBrush () {
+  // TODO: HACK WTF
+  // d3.select('.brush').remove();
+  d3.select('.brush').attr('style', 'display: none;');
+}
 
 var clearBrush = function clearBrush() {
   d3.selectAll('rect.selected').classed('selected', false);
-  d3.selectAll('#selectable-gantt-chart .brush').call(brush.clear());
+  var brushSelection = d3.selectAll('#selectable-gantt-chart .brush');
+  brushSelection.call(brush.clear());
+  if (brushSelection.empty()) { addBrush(); }
+};
+
+var stopEditing = function stopEditing () {
+  d3.selectAll('rect.selected').classed('selected', false);
+  addBrush();
 };
 
 var createChart = function createChart (element, data, opts) {
@@ -114,10 +135,10 @@ var createChart = function createChart (element, data, opts) {
       }
 
       if (brushStartInsideBar() || brushEndInsideBar() || barInsideBrush()) {
-        bar.selected = true;
-
         if (brush.empty()) {
           bar.selected = isBarClicked(bar);
+        } else {
+          bar.selected = true;
         }
       }
     });
@@ -201,7 +222,7 @@ var createChart = function createChart (element, data, opts) {
         .attr('cursor', 'ew-resize')
         .call(dragRight);
 
-        d3.select('.brush').attr('style', 'display: none;'); // TODO: HACK to disable brush temporarily
+        removeBrush();
     }
 
     var selection = d3.selectAll('rect.selected');
@@ -237,11 +258,7 @@ var createChart = function createChart (element, data, opts) {
                     .orient('right')
                     .scale(labelsScale);
 
-  baseSVG.append('g').attr('class', 'brush')
-                     .attr('opacity', '.3')
-                     .call(brush)
-                     .selectAll('rect')
-                     .attr('height', chartHeight);
+  addBrush(chartHeight);
 
   chartData.append('g')
            .attr('class', 'xaxis')
@@ -261,6 +278,8 @@ var createChart = function createChart (element, data, opts) {
            .attr('y2', opts.barHeight / 2);
 
   chartData.append('g')
+           .attr('id', 'bars')
+           .attr('height', chartHeight)
            .selectAll('rect')
            .data(data)
            .enter()
