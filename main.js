@@ -166,10 +166,17 @@ var createChart = function createChart (element, data, opts) {
         var newX = currentX + d3.event.dx;
         var newTime = timeScale.invert(newX).getTime() / 1000;
 
-        if (newTime >= d.endedAt) {
-          console.warn('avoid dragging started > ended');
-          return;
-        }
+        if (newTime >= d.endedAt) { return; }
+
+        var siblingsToTheLeft = data.filter(function (sibling) {
+          return sibling.label === d.label && sibling.startedAt <= d.startedAt && sibling != d;
+        });
+
+        var startedAtBoundary = siblingsToTheLeft.map(function (s) {
+          return s.endedAt;
+        }).sort().pop();
+
+        if (startedAtBoundary && newTime <= startedAtBoundary) { return; }
 
         d.startedAt = newTime;
 
@@ -186,10 +193,7 @@ var createChart = function createChart (element, data, opts) {
         var newX = currentX + d3.event.dx;
         var newTime = timeScale.invert(newX).getTime() / 1000;
 
-        if (newTime <= d.startedAt) {
-          console.warn('avoid dragging ended < started');
-          return;
-        }
+        if (newTime <= d.startedAt) { return; }
 
         d.endedAt = newTime;
 
