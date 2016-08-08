@@ -57,11 +57,16 @@ function removeBrush () {
   brushSelection.remove();
 }
 
+function disableDragging () {
+  d3.select('#selectionDragComponent').remove();
+}
+
 var clearBrush = function clearBrush() {
   d3.selectAll('rect.selected').classed('selected', false);
   var brushSelection = d3.selectAll('#selectable-gantt-chart .brush');
   brushSelection.call(brush.clear());
   if (brushSelection.empty()) { addBrush(); }
+  disableDragging();
 };
 
 var stopEditing = function stopEditing () {
