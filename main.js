@@ -41,18 +41,20 @@ function initialize (element, data, opts) {
 var brush = d3.svg.brush();
 
 function addBrush (height) {
+  height = height || d3.select('#chart-data>#bars').attr('height');
+
   d3.select('#selectable-gantt-chart').append('g')
     .attr('class', 'brush')
     .attr('opacity', '.3')
     .call(brush)
     .selectAll('rect')
-    .attr('height', height || d3.select('#chart-data>#bars').attr('height'));
+    .attr('height', height);
 }
 
 function removeBrush () {
-  // TODO: HACK WTF
-  // d3.select('.brush').remove();
-  d3.select('.brush').attr('style', 'display: none;');
+  var brushSelection = d3.select('#selectable-gantt-chart .brush');
+  brushSelection.call(brush.clear());
+  brushSelection.remove();
 }
 
 var clearBrush = function clearBrush() {
@@ -114,6 +116,11 @@ var createChart = function createChart (element, data, opts) {
   }
 
   function brushed () {
+    if (d3.select('.brush').empty()) { // FIXME brush events are being triggered when removing the brush element
+      console.warn('brush has been removed, skipping brushed event listener...');
+      return;
+    }
+
     var timeRange  = brush.extent();
     var rects       = d3.selectAll('rect.bar');
     var brushStart = Math.floor(timeRange[0].getTime() / 1000);
@@ -239,6 +246,11 @@ var createChart = function createChart (element, data, opts) {
   }
 
   function brushEnded () {
+    if (d3.select('.brush').empty()) { // FIXME brush events are being triggered when removing the brush element
+      console.warn('brush has been removed, skipping brushend event listener...');
+      return;
+    }
+
     if (!brush.empty()) {
       opts.onBrushEnd(brush.extent(), d3.selectAll('rect.selected').data());
     }
