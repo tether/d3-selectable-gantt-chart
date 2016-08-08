@@ -160,6 +160,12 @@ var createChart = function createChart (element, data, opts) {
       return bar.selected;
     });
 
+    function byLabel (label) {
+      return function (obj) {
+        return obj.label === label;
+      };
+    }
+
     function enableDragging (selectedData) {
       function onDragLeft (d) {
         var currentX = timeScale(new Date(d.startedAt * 1000));
@@ -168,8 +174,8 @@ var createChart = function createChart (element, data, opts) {
 
         if (newTime >= d.endedAt) { return; }
 
-        var siblingsToTheLeft = data.filter(function (sibling) {
-          return sibling.label === d.label && sibling.startedAt <= d.startedAt && sibling != d;
+        var siblingsToTheLeft = data.filter(byLabel(d.label)).filter(function (sibling) {
+          return sibling.startedAt <= d.startedAt && sibling != d;
         });
 
         var startedAtBoundary = siblingsToTheLeft.map(function (s) {
@@ -194,6 +200,16 @@ var createChart = function createChart (element, data, opts) {
         var newTime = timeScale.invert(newX).getTime() / 1000;
 
         if (newTime <= d.startedAt) { return; }
+
+        var siblingsToTheRight = data.filter(byLabel(d.label)).filter(function (sibling) {
+          return sibling.startedAt >= d.endedAt && sibling != d;
+        });
+
+        var endedAtBoundary = siblingsToTheRight.map(function (s) {
+          return s.startedAt;
+        }).sort().shift();
+
+        if (endedAtBoundary && newTime >= endedAtBoundary) { return; }
 
         d.endedAt = newTime;
 
