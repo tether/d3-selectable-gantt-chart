@@ -164,9 +164,14 @@ var createChart = function createChart (element, data, opts) {
       function onDragLeft (d) {
         var currentX = timeScale(new Date(d.startedAt * 1000));
         var newX = currentX + d3.event.dx;
-        var newTime = timeScale.invert(newX);
+        var newTime = timeScale.invert(newX).getTime() / 1000;
 
-        d.startedAt = newTime.getTime() / 1000;
+        if (newTime >= d.endedAt) {
+          console.warn('avoid dragging started > ended');
+          return;
+        }
+
+        d.startedAt = newTime;
 
         d3.select('rect.selected')
           .attr('x', newX)
@@ -179,9 +184,14 @@ var createChart = function createChart (element, data, opts) {
       function onDragRight (d) {
         var currentX = timeScale(new Date(d.endedAt * 1000));
         var newX = currentX + d3.event.dx;
-        var newTime = timeScale.invert(newX);
+        var newTime = timeScale.invert(newX).getTime() / 1000;
 
-        d.endedAt = newTime.getTime() / 1000;
+        if (newTime <= d.startedAt) {
+          console.warn('avoid dragging ended < started');
+          return;
+        }
+
+        d.endedAt = newTime;
 
         d3.select('rect.selected')
           .attr('width', computeBarWidth);
