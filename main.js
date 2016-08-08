@@ -33,6 +33,7 @@ function initialize (element, data, opts) {
   opts.margin       = { top: 200, right: 40, bottom: 200, left: 40 };
   opts.width        = element.clientWidth - opts.margin.left - opts.margin.right;
   opts.onBarClicked = opts.onBarClicked || function () {};
+  opts.onBarChanged = opts.onBarChanged || function () {};
   opts.onBrush      = opts.onBrush || function() {};
   opts.onBrushEnd   = opts.onBrushEnd || function() {};
 
@@ -192,6 +193,8 @@ var createChart = function createChart (element, data, opts) {
 
         d3.select('rect#dragLeft')
           .attr('x', newX - (dragBarSize / 2));
+
+        opts.onBarChanged(d);
       }
 
       function onDragRight (d) {
@@ -218,6 +221,8 @@ var createChart = function createChart (element, data, opts) {
 
         d3.select('rect#dragRight')
           .attr('x', newX - (dragBarSize / 2));
+
+        opts.onBarChanged(d);
       }
 
       var dragLeft = d3.behavior.drag()
