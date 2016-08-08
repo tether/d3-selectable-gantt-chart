@@ -116,6 +116,117 @@ var createChart = function createChart (element, data, opts) {
     return (bar.label === label);
   }
 
+  function enableDragging (selectedData) {
+    function byLabel (label) {
+      return function (obj) {
+        return obj.label === label;
+      };
+    }
+
+    function onDragLeft (d) {
+      var currentX = timeScale(new Date(d.startedAt * 1000));
+      var newX = currentX + d3.event.dx;
+      var newTime = timeScale.invert(newX).getTime() / 1000;
+
+      if (newTime >= d.endedAt) { return; }
+
+      var siblingsToTheLeft = data.filter(byLabel(d.label)).filter(function (sibling) {
+        return sibling.startedAt <= d.startedAt && sibling != d;
+      });
+
+      var startedAtBoundary = siblingsToTheLeft.map(function (s) {
+        return s.endedAt;
+      }).sort().pop();
+
+      if (startedAtBoundary && newTime <= startedAtBoundary) { return; }
+
+      d.startedAt = newTime;
+
+      d3.select('rect.selected')
+        .attr('x', newX)
+        .attr('width', computeBarWidth);
+
+      d3.select('rect#dragLeft')
+        .attr('x', newX - (dragBarSize / 2));
+
+      opts.onBarChanged(d);
+    }
+
+    function onDragRight (d) {
+      var currentX = timeScale(new Date(d.endedAt * 1000));
+      var newX = currentX + d3.event.dx;
+      var newTime = timeScale.invert(newX).getTime() / 1000;
+
+      if (newTime <= d.startedAt) { return; }
+
+      var siblingsToTheRight = data.filter(byLabel(d.label)).filter(function (sibling) {
+        return sibling.startedAt >= d.endedAt && sibling != d;
+      });
+
+      var endedAtBoundary = siblingsToTheRight.map(function (s) {
+        return s.startedAt;
+      }).sort().shift();
+
+      if (endedAtBoundary && newTime >= endedAtBoundary) { return; }
+
+      d.endedAt = newTime;
+
+      d3.select('rect.selected')
+        .attr('width', computeBarWidth);
+
+      d3.select('rect#dragRight')
+        .attr('x', newX - (dragBarSize / 2));
+
+      opts.onBarChanged(d);
+    }
+
+    var dragLeft = d3.behavior.drag()
+      .origin(Object)
+      .on('drag', onDragLeft);
+
+    var dragRight = d3.behavior.drag()
+      .origin(Object)
+      .on('drag', onDragRight);
+
+    var selection = chartData.append('g')
+      .attr('id', 'selectionDragComponent')
+      .selectAll('rect')
+      .data([selectedData])
+      .enter();
+
+    var dragBarSize = 10;
+
+    function dragBarX (fieldName) {
+      return function x (d) {
+        return timeScale(new Date(d[fieldName] * 1000)) - (dragBarSize / 2);
+      };
+    }
+
+    var dragBarLeft = selection.append('rect')
+      .attr('x', dragBarX('startedAt'))
+      .attr('y', computeBarY)
+      .attr('height', opts.barHeight)
+      .attr('width', dragBarSize)
+      .attr('id', 'dragLeft')
+      .attr('fill', 'blue')
+      .attr('fill-opacity', 0.3)
+      .attr('cursor', 'ew-resize')
+      .call(dragLeft);
+
+    var dragBarRight = selection.append('rect')
+      .attr('x', dragBarX('endedAt'))
+      .attr('y', computeBarY)
+      .attr('height', opts.barHeight)
+      .attr('width', dragBarSize)
+      .attr('id', 'dragRight')
+      .attr('fill', 'blue')
+      .attr('fill-opacity', 0.3)
+      .attr('cursor', 'ew-resize')
+      .call(dragRight);
+
+      removeBrush();
+  }
+
   function brushed () {
     if (d3.select('.brush').empty()) { // FIXME brush events are being triggered when removing the brush element
       console.warn('brush has been removed, skipping brushed event listener...');
@@ -156,117 +267,6 @@ var createChart = function createChart (element, data, opts) {
       return bar.selected;
     });
 
-    function byLabel (label) {
-      return function (obj) {
-        return obj.label === label;
-      };
-    }
-
-    function enableDragging (selectedData) {
-      function onDragLeft (d) {
-        var currentX = timeScale(new Date(d.startedAt * 1000));
-        var newX = currentX + d3.event.dx;
-        var newTime = timeScale.invert(newX).getTime() / 1000;
-
-        if (newTime >= d.endedAt) { return; }
-
-        var siblingsToTheLeft = data.filter(byLabel(d.label)).filter(function (sibling) {
-          return sibling.startedAt <= d.startedAt && sibling != d;
-        });
-
-        var startedAtBoundary = siblingsToTheLeft.map(function (s) {
-          return s.endedAt;
-        }).sort().pop();
-
-        if (startedAtBoundary && newTime <= startedAtBoundary) { return; }
-
-        d.startedAt = newTime;
-
-        d3.select('rect.selected')
-          .attr('x', newX)
-          .attr('width', computeBarWidth);
-
-        d3.select('rect#dragLeft')
-          .attr('x', newX - (dragBarSize / 2));
-
-        opts.onBarChanged(d);
-      }
-
-      function onDragRight (d) {
-        var currentX = timeScale(new Date(d.endedAt * 1000));
-        var newX = currentX + d3.event.dx;
-        var newTime = timeScale.invert(newX).getTime() / 1000;
-
-        if (newTime <= d.startedAt) { return; }
-
-        var siblingsToTheRight = data.filter(byLabel(d.label)).filter(function (sibling) {
-          return sibling.startedAt >= d.endedAt && sibling != d;
-        });
-
-        var endedAtBoundary = siblingsToTheRight.map(function (s) {
-          return s.startedAt;
-        }).sort().shift();
-
-        if (endedAtBoundary && newTime >= endedAtBoundary) { return; }
-
-        d.endedAt = newTime;
-
-        d3.select('rect.selected')
-          .attr('width', computeBarWidth);
-
-        d3.select('rect#dragRight')
-          .attr('x', newX - (dragBarSize / 2));
-
-        opts.onBarChanged(d);
-      }
-
-      var dragLeft = d3.behavior.drag()
-        .origin(Object)
-        .on('drag', onDragLeft);
-
-      var dragRight = d3.behavior.drag()
-        .origin(Object)
-        .on('drag', onDragRight);
-
-      var selection = chartData.append('g')
-        .attr('id', 'selectionDragComponent')
-        .selectAll('rect')
-        .data([selectedData])
-        .enter();
-
-      var dragBarSize = 10;
-
-      function dragBarX (fieldName) {
-        return function x (d) {
-          return timeScale(new Date(d[fieldName] * 1000)) - (dragBarSize / 2);
-        };
-      }
-
-      var dragBarLeft = selection.append('rect')
-        .attr('x', dragBarX('startedAt'))
-        .attr('y', computeBarY)
-        .attr('height', opts.barHeight)
-        .attr('width', dragBarSize)
-        .attr('id', 'dragLeft')
-        .attr('fill', 'blue')
-        .attr('fill-opacity', 0.3)
-        .attr('cursor', 'ew-resize')
-        .call(dragLeft);
-
-      var dragBarRight = selection.append('rect')
-        .attr('x', dragBarX('endedAt'))
-        .attr('y', computeBarY)
-        .attr('height', opts.barHeight)
-        .attr('width', dragBarSize)
-        .attr('id', 'dragRight')
-        .attr('fill', 'blue')
-        .attr('fill-opacity', 0.3)
-        .attr('cursor', 'ew-resize')
-        .call(dragRight);
-
-        removeBrush();
-    }
-
     var selection = d3.selectAll('rect.selected');
 
     if (brush.empty()) {
@@ -293,6 +293,25 @@ var createChart = function createChart (element, data, opts) {
 
   brush.x(timeScale).on('brush', brushed);
   brush.x(timeScale).on('brushend', brushEnded);
+
+  function rectClicked (d) {
+    var rects = d3.selectAll('rect.bar');
+
+    rects.each(function (bar) {
+      bar.selected = bar === d;
+    });
+
+    rects.classed('selected', function (bar) {
+      return bar.selected;
+    });
+
+    if (!d3.select('#selectionDragComponent').empty()) {
+      disableDragging();
+    }
+
+    enableDragging(d);
+    opts.onBarClicked(d);
+  }
 
   var xAxisOffset = chartHeight + 10;
   var xAxis = d3.svg.axis()
@@ -331,6 +350,7 @@ var createChart = function createChart (element, data, opts) {
            .data(data)
            .enter()
            .append('rect')
+           .on('click', rectClicked)
            .attr('class', 'bar')
            .attr('x', function (d) {
              return timeScale(new Date(d.startedAt * 1000));
