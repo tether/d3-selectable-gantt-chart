@@ -70,11 +70,6 @@ var clearBrush = function clearBrush() {
   disableDragging();
 };
 
-var stopEditing = function stopEditing () {
-  d3.selectAll('rect.selected').classed('selected', false);
-  addBrush();
-};
-
 var createChart = function createChart (element, data, opts) {
   opts               = initialize(element, data, opts);
 
