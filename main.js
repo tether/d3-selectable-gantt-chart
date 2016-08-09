@@ -120,12 +120,6 @@ var createChart = function createChart (element, data, opts) {
   }
 
   function enableDragging (selectedData) {
-    function byLabel (label) {
-      return function (obj) {
-        return obj.label === label;
-      };
-    }
-
     function newTimeValue (date) {
       var currentX = timeScale(date);
       var newX = currentX + d3.event.dx;
