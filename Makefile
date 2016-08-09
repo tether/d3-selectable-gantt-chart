@@ -1,4 +1,5 @@
 PATH        := $(PATH):node_modules/.bin
+SHELL       := /bin/bash
 example_dir := example
 
 .PHONY: install
