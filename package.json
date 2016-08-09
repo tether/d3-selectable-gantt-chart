@@ -18,6 +18,7 @@
   "homepage": "https://github.com/PetroFeed/d3-selectable-gantt-chart#readme",
   "devDependencies": {
     "browserify": "^13.0.1",
+    "jasmine-node": "^1.14.5",
     "jshint": "^2.9.2"
   }
 }

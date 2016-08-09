@@ -21,3 +21,7 @@ build.example: install
 lint: install
 	@jshint main.js
 	@[ $$? -eq 0 ] && echo 'Lint ✅'
+
+.PHONY: test
+test: install lint
+	@jasmine-node test/
