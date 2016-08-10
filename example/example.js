@@ -1,4 +1,5 @@
-var timelineChart = require('../main');
+var TimelineChart = require('../main');
+var chart;
 
 var selectionInfo  = d3.select('#selection-info').append('ul');
 var activitiesInfo = d3.select('#selection-info').append('dl');
@@ -7,7 +8,7 @@ var clearBrushButton = document.getElementById('clearBrush');
 clearBrushButton.onclick = function clearBrush () {
   selectionInfo.html('');
   activitiesInfo.html('');
-  timelineChart.clearBrush();
+  chart.clearBrush();
 };
 
 function updateSelectionInfo (timeRange) {
@@ -49,5 +50,5 @@ d3.json('http://localhost:8080/sample.json', function (data) {
     onBarChanged: updateBarInfo
   };
 
-  timelineChart.create(chartElement, data, opts);
+  chart = new TimelineChart(chartElement, data, opts);
 });
