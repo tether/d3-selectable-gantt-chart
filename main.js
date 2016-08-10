@@ -1,3 +1,6 @@
+var OverlapDetector = require('./lib/overlap-detector');
+var Bar = require('./lib/bar');
+
 function extractLabels (data) {
   function unique (value, index, array) {
     return array.indexOf(value) === index;
@@ -117,67 +120,53 @@ var createChart = function createChart (element, data, opts) {
   }
 
   function enableDragging (selectedData) {
-    function byLabel (label) {
-      return function (obj) {
-        return obj.label === label;
+    function newTimeValue (date) {
+      var currentX = timeScale(date);
+      var newX = currentX + d3.event.dx;
+
+      return {
+        x: newX,
+        time: timeScale.invert(newX).getTime() / 1000
       };
     }
 
     function onDragLeft (d) {
-      var currentX = timeScale(new Date(d.startedAt * 1000));
-      var newX = currentX + d3.event.dx;
-      var newTime = timeScale.invert(newX).getTime() / 1000;
+      var bar = new Bar(d);
+      var newValue = newTimeValue(new Date(d.startedAt * 1000));
+      var newBar = bar.expandLeft(newValue.time);
 
-      if (newTime >= d.endedAt) { return; }
+      if (newValue.time >= bar.endedAt) { return; }
+      if (OverlapDetector.isOverlapping(newBar, data)) { return; }
 
-      var siblingsToTheLeft = data.filter(byLabel(d.label)).filter(function (sibling) {
-        return sibling.startedAt <= d.startedAt && sibling != d;
-      });
-
-      var startedAtBoundary = siblingsToTheLeft.map(function (s) {
-        return s.endedAt;
-      }).sort().pop();
-
-      if (startedAtBoundary && newTime <= startedAtBoundary) { return; }
-
-      d.startedAt = newTime;
+      d.startedAt = newValue.time;
 
       d3.select('rect.selected')
-        .attr('x', newX)
+        .attr('x', newValue.x)
         .attr('width', computeBarWidth);
 
       d3.select('rect#dragLeft')
-        .attr('x', newX - (dragBarSize / 2));
+        .attr('x', newValue.x - (dragBarSize / 2));
 
-      opts.onBarChanged(d);
+      opts.onBarChanged(newBar);
     }
 
     function onDragRight (d) {
-      var currentX = timeScale(new Date(d.endedAt * 1000));
-      var newX = currentX + d3.event.dx;
-      var newTime = timeScale.invert(newX).getTime() / 1000;
+      var bar = new Bar(d);
+      var newValue = newTimeValue(new Date(d.endedAt * 1000));
+      var newBar = bar.expandRight(newValue.time);
 
-      if (newTime <= d.startedAt) { return; }
+      if (newValue.time <= d.startedAt) { return; }
+      if (OverlapDetector.isOverlapping(newBar, data)) { return; }
 
-      var siblingsToTheRight = data.filter(byLabel(d.label)).filter(function (sibling) {
-        return sibling.startedAt >= d.endedAt && sibling != d;
-      });
-
-      var endedAtBoundary = siblingsToTheRight.map(function (s) {
-        return s.startedAt;
-      }).sort().shift();
-
-      if (endedAtBoundary && newTime >= endedAtBoundary) { return; }
-
-      d.endedAt = newTime;
+      d.endedAt = newValue.time;
 
       d3.select('rect.selected')
         .attr('width', computeBarWidth);
 
       d3.select('rect#dragRight')
-        .attr('x', newX - (dragBarSize / 2));
+        .attr('x', newValue.x - (dragBarSize / 2));
 
-      opts.onBarChanged(d);
+      opts.onBarChanged(newBar);
     }
 
     var dragLeft = d3.behavior.drag()
