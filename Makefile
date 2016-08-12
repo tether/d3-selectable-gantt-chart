@@ -1,4 +1,5 @@
 PATH        := $(PATH):node_modules/.bin
+SHELL       := /bin/bash
 example_dir := example
 
 .PHONY: install
@@ -20,3 +21,7 @@ build.example: install
 lint: install
 	@jshint main.js
 	@[ $$? -eq 0 ] && echo 'Lint ✅'
+
+.PHONY: test
+test: install lint
+	@jasmine-node test/
