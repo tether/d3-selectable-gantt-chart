@@ -361,7 +361,7 @@ function TimelineChart (element, data, opts) {
       .attr('cy', function (d) {
         return labelsScale(d.label) + opts.barHeight / 2;
       })
-      .attr('r', 4);
+      .attr('r', 2);
   }
 
   createChart(element, data, opts);
