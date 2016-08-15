@@ -1,6 +1,7 @@
 var OverlapDetector = require('./lib/overlap-detector');
 var Bar = require('./lib/bar');
 var DateCalculator = require('./lib/date.calculator');
+var DataHelper = require('./lib/data.helper');
 
 function TimelineChart (element, data, opts) {
   function initialize (element, data, opts) {
@@ -22,16 +23,9 @@ function TimelineChart (element, data, opts) {
 
   opts = initialize(element, data, opts);
 
-  function extractLabels (data) {
-    function unique (value, index, array) {
-      return array.indexOf(value) === index;
-    }
-
-    return data.map(function (d) { return d.label; }).filter(unique);
-  }
-
+  var labels         = DataHelper.labels(data);
   var brush          = d3.svg.brush();
-  var chartHeight    = calculateChartHeight(data, opts.barHeight);
+  var chartHeight    = labels.length * opts.barHeight;
   var svgHeight      = chartHeight + opts.xAxisHeight;
   var baseSVG        = d3.select(element)
                          .append('svg')
@@ -48,7 +42,7 @@ function TimelineChart (element, data, opts) {
 
   var labelsScale = d3.scale
                       .ordinal()
-                      .domain(data.map(function(d) { return d.label; }))
+                      .domain(labels)
                       .rangeRoundBands([1, chartHeight]);
 
   function computeBarWidth (d) {
@@ -247,13 +241,12 @@ function TimelineChart (element, data, opts) {
       .on('brush', brushed)
       .on('brushend', brushEnded);
 
-    var height = calculateChartHeight(data, opts.barHeight);
     d3.select('#selectable-gantt-chart').append('g')
       .attr('class', 'brush')
       .attr('opacity', '.3')
       .call(brush)
       .selectAll('rect')
-      .attr('height', height);
+      .attr('height', chartHeight);
   }
 
   function removeBrush () {
@@ -277,11 +270,6 @@ function TimelineChart (element, data, opts) {
     if (brushSelection.empty()) { addBrush(); }
     disableDragging();
   };
-
-  function calculateChartHeight (data, barHeight) {
-    var labels = extractLabels(data);
-    return labels.length * barHeight;
-  }
 
   function createChart (element, data, opts) {
     var xAxisOffset = chartHeight + 10;
