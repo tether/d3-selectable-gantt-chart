@@ -20,5 +20,8 @@
     "browserify": "^13.0.1",
     "jasmine-node": "^1.14.5",
     "jshint": "^2.9.2"
+  },
+  "dependencies": {
+    "lodash": "^4.15.0"
   }
 }

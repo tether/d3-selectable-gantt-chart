@@ -1,27 +1,12 @@
 var OverlapDetector = require('./lib/overlap-detector');
 var Bar = require('./lib/bar');
+var DateCalculator = require('./lib/date.calculator');
 
 function TimelineChart (element, data, opts) {
-  function toDate (timeInSeconds) {
-    return new Date(timeInSeconds * 1000);
-  }
-
-  function defaultMinDate (data) {
-    return d3.min(data.map(function (d) {
-      return toDate(d.startedAt);
-    }));
-  }
-
-  function defaultMaxDate (data) {
-    return d3.max(data.map(function (d) {
-      return toDate(d.endedAt);
-    }));
-  }
-
   function initialize (element, data, opts) {
     opts              = opts || {};
-    opts.minDate      = opts.minDate || defaultMinDate(data);
-    opts.maxDate      = opts.maxDate || defaultMaxDate(data);
+    opts.minDate      = opts.minDate || DateCalculator.minDate(data);
+    opts.maxDate      = opts.maxDate || DateCalculator.maxDate(data);
     opts.leftPad      = opts.leftPad || 80;
     opts.barHeight    = opts.barHeight || 25;
     opts.xAxisHeight  = opts.xAxisHeight || 60;
