@@ -56,7 +56,7 @@ function TimelineChart (element, data, opts) {
     return labelsScale(d.label);
   }
 
-  function isBarClicked(bar) {
+  function isBarClicked (obj) {
     var y = d3.mouse(d3.select('g.brush').node())[1];
 
     var domain = labelsScale.domain();
@@ -64,7 +64,7 @@ function TimelineChart (element, data, opts) {
 
     var label = domain[d3.bisect(range, y) - 1];
 
-    return (bar.label === label);
+    return (obj.label === label);
   }
 
   function enableDragging (selectedData) {
@@ -164,11 +164,8 @@ function TimelineChart (element, data, opts) {
       removeBrush();
   }
 
-  function brushed () {
-    var timeRange  = brush.extent();
-    var rects       = d3.selectAll('rect.bar');
-    var brushStart = Math.floor(timeRange[0].getTime() / 1000);
-    var brushEnd   = Math.floor(timeRange[1].getTime() / 1000);
+  function brushBars (brushStart, brushEnd) {
+    var rects = d3.selectAll('rect.bar');
 
     rects.each(function (bar) {
       bar.selected = false;
@@ -197,8 +194,34 @@ function TimelineChart (element, data, opts) {
     rects.classed('selected', function (bar) {
       return bar.selected;
     });
+  }
 
-    var selection = d3.selectAll('rect.selected');
+  function brushCircles (brushStart, brushEnd) {
+    var circles = d3.selectAll('circle.instance');
+
+    circles.each(function (circle) {
+      if (brush.empty()) {
+        // NOTE: do not allow "clicking" on an instance for now
+        circle.selected = false;
+      } else {
+        circle.selected = circle.at >= brushStart && circle.at <= brushEnd;
+      }
+    });
+
+    circles.classed('selected', function (circle) {
+      return circle.selected;
+    });
+  }
+
+  function brushed () {
+    var timeRange  = brush.extent();
+    var brushStart = Math.floor(timeRange[0].getTime() / 1000);
+    var brushEnd   = Math.floor(timeRange[1].getTime() / 1000);
+
+    brushBars(brushStart, brushEnd);
+    brushCircles(brushStart, brushEnd);
+
+    var selection = d3.selectAll('.selected');
 
     if (brush.empty()) {
       if (!selection.empty()) {
@@ -213,7 +236,7 @@ function TimelineChart (element, data, opts) {
 
   function brushEnded () {
     if (!brush.empty()) {
-      opts.onBrushEnd(brush.extent(), d3.selectAll('rect.selected').data());
+      opts.onBrushEnd(brush.extent(), d3.selectAll('.selected').data());
     }
   }
 
@@ -264,7 +287,7 @@ function TimelineChart (element, data, opts) {
   }
 
   this.clearBrush = function clearBrush() {
-    d3.selectAll('rect.selected').classed('selected', false);
+    d3.selectAll('.selected').classed('selected', false);
     var brushSelection = d3.selectAll('#selectable-gantt-chart .brush');
     brushSelection.call(brush.clear());
     if (brushSelection.empty()) { addBrush(); }

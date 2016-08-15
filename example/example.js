@@ -17,22 +17,26 @@ function updateSelectionInfo (timeRange) {
   selectionInfo.append('li').text('End date: ' + timeRange[1]);
 }
 
-function appendBarInformation (bar) {
-  activitiesInfo.append('dt').text('Label: ' + bar.label);
-  activitiesInfo.append('dd').text('Bar start: ' + new Date(bar.startedAt * 1000));
-  activitiesInfo.append('dd').text('Bar end: ' + new Date(bar.endedAt * 1000));
+function appendItemInformation (item) {
+  activitiesInfo.append('dt').text('Label: ' + item.label);
+  if (item.hasOwnProperty('startedAt')) {
+    activitiesInfo.append('dd').text('Bar start: ' + new Date(item.startedAt * 1000));
+    activitiesInfo.append('dd').text('Bar end: ' + new Date(item.endedAt * 1000));
+  } else if (item.hasOwnProperty('at')) {
+    activitiesInfo.append('dd').text('At: ' + new Date(item.at * 1000));
+  }
 }
 
-function updateBarsInformation (bars) {
+function updateItemsInformation (items) {
   activitiesInfo.html('');
 
-  bars.forEach(appendBarInformation);
+  items.forEach(appendItemInformation);
 }
 
-function updateBarInfo (bar) {
+function updateBarInfo (item) {
   activitiesInfo.html('');
   selectionInfo.html('');
-  appendBarInformation(bar);
+  appendItemInformation(item);
 }
 
 d3.json('http://localhost:8080/sample.json', function (data) {
@@ -40,11 +44,11 @@ d3.json('http://localhost:8080/sample.json', function (data) {
   var opts = {
     minDate: new Date(2016, 6, 6, 0, 0, 1),
     maxDate: new Date(2016, 6, 6, 23, 59, 59),
-    onBrush: function (timeRange, selectedBars) {
+    onBrush: function (timeRange) {
       updateSelectionInfo(timeRange);
     },
-    onBrushEnd: function (timeRange, selectedBars) {
-      updateBarsInformation(selectedBars);
+    onBrushEnd: function (timeRange, selectedItems) {
+      updateItemsInformation(selectedItems);
     },
     onBarClicked: updateBarInfo,
     onBarChanged: updateBarInfo
