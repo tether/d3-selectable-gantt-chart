@@ -302,21 +302,43 @@ function TimelineChart (element, data, opts) {
              .attr('y1', opts.barHeight / 2)
              .attr('y2', opts.barHeight / 2);
 
-    chartData.append('g')
-             .attr('id', 'bars')
-             .attr('height', chartHeight)
-             .selectAll('rect')
-             .data(data)
-             .enter()
-             .append('rect')
-             .on('click', rectClicked)
-             .attr('class', 'bar')
-             .attr('x', function (d) {
-               return timeScale(new Date(d.startedAt * 1000));
-             })
-             .attr('y', computeBarY)
-             .attr('height', opts.barHeight)
-             .attr('width', computeBarWidth);
+    var chartDataGroup = chartData.append('g').attr('height', chartHeight);
+
+    function intervals (d) {
+      return d.hasOwnProperty('startedAt');
+    }
+
+    function instances (d) {
+      return d.hasOwnProperty('at');
+    }
+
+    chartDataGroup
+      .selectAll('rect')
+      .data(data.filter(intervals))
+      .enter()
+      .append('rect')
+      .on('click', rectClicked)
+      .attr('class', 'bar')
+      .attr('x', function (d) {
+        return timeScale(new Date(d.startedAt * 1000));
+      })
+      .attr('y', computeBarY)
+      .attr('height', opts.barHeight)
+      .attr('width', computeBarWidth);
+
+    chartDataGroup
+      .selectAll('circle')
+      .data(data.filter(instances))
+      .enter()
+      .append('circle')
+      .attr('class', 'instance')
+      .attr('cx', function (d) {
+        return timeScale(new Date(d.at * 1000));
+      })
+      .attr('cy', function (d) {
+        return labelsScale(d.label) + opts.barHeight / 2;
+      })
+      .attr('r', 4);
   }
 
   createChart(element, data, opts);
