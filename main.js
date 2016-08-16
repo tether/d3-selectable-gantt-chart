@@ -1,27 +1,13 @@
 var OverlapDetector = require('./lib/overlap-detector');
 var Bar = require('./lib/bar');
+var DateCalculator = require('./lib/date.calculator');
+var DataHelper = require('./lib/data.helper');
 
 function TimelineChart (element, data, opts) {
-  function toDate (timeInSeconds) {
-    return new Date(timeInSeconds * 1000);
-  }
-
-  function defaultMinDate (data) {
-    return d3.min(data.map(function (d) {
-      return toDate(d.startedAt);
-    }));
-  }
-
-  function defaultMaxDate (data) {
-    return d3.max(data.map(function (d) {
-      return toDate(d.endedAt);
-    }));
-  }
-
   function initialize (element, data, opts) {
     opts              = opts || {};
-    opts.minDate      = opts.minDate || defaultMinDate(data);
-    opts.maxDate      = opts.maxDate || defaultMaxDate(data);
+    opts.minDate      = opts.minDate || DateCalculator.minDate(data);
+    opts.maxDate      = opts.maxDate || DateCalculator.maxDate(data);
     opts.leftPad      = opts.leftPad || 80;
     opts.barHeight    = opts.barHeight || 25;
     opts.xAxisHeight  = opts.xAxisHeight || 60;
@@ -37,16 +23,9 @@ function TimelineChart (element, data, opts) {
 
   opts = initialize(element, data, opts);
 
-  function extractLabels (data) {
-    function unique (value, index, array) {
-      return array.indexOf(value) === index;
-    }
-
-    return data.map(function (d) { return d.label; }).filter(unique);
-  }
-
+  var labels         = DataHelper.labels(data);
   var brush          = d3.svg.brush();
-  var chartHeight    = calculateChartHeight(data, opts.barHeight);
+  var chartHeight    = labels.length * opts.barHeight;
   var svgHeight      = chartHeight + opts.xAxisHeight;
   var baseSVG        = d3.select(element)
                          .append('svg')
@@ -63,7 +42,7 @@ function TimelineChart (element, data, opts) {
 
   var labelsScale = d3.scale
                       .ordinal()
-                      .domain(data.map(function(d) { return d.label; }))
+                      .domain(labels)
                       .rangeRoundBands([1, chartHeight]);
 
   function computeBarWidth (d) {
@@ -77,7 +56,7 @@ function TimelineChart (element, data, opts) {
     return labelsScale(d.label);
   }
 
-  function isBarClicked(bar) {
+  function isBarClicked (obj) {
     var y = d3.mouse(d3.select('g.brush').node())[1];
 
     var domain = labelsScale.domain();
@@ -85,7 +64,7 @@ function TimelineChart (element, data, opts) {
 
     var label = domain[d3.bisect(range, y) - 1];
 
-    return (bar.label === label);
+    return (obj.label === label);
   }
 
   function enableDragging (selectedData) {
@@ -185,11 +164,8 @@ function TimelineChart (element, data, opts) {
       removeBrush();
   }
 
-  function brushed () {
-    var timeRange  = brush.extent();
-    var rects       = d3.selectAll('rect.bar');
-    var brushStart = Math.floor(timeRange[0].getTime() / 1000);
-    var brushEnd   = Math.floor(timeRange[1].getTime() / 1000);
+  function brushBars (brushStart, brushEnd) {
+    var rects = d3.selectAll('rect.bar');
 
     rects.each(function (bar) {
       bar.selected = false;
@@ -218,8 +194,34 @@ function TimelineChart (element, data, opts) {
     rects.classed('selected', function (bar) {
       return bar.selected;
     });
+  }
 
-    var selection = d3.selectAll('rect.selected');
+  function brushCircles (brushStart, brushEnd) {
+    var circles = d3.selectAll('circle.instance');
+
+    circles.each(function (circle) {
+      if (brush.empty()) {
+        // NOTE: do not allow "clicking" on an instance for now
+        circle.selected = false;
+      } else {
+        circle.selected = circle.at >= brushStart && circle.at <= brushEnd;
+      }
+    });
+
+    circles.classed('selected', function (circle) {
+      return circle.selected;
+    });
+  }
+
+  function brushed () {
+    var timeRange  = brush.extent();
+    var brushStart = Math.floor(timeRange[0].getTime() / 1000);
+    var brushEnd   = Math.floor(timeRange[1].getTime() / 1000);
+
+    brushBars(brushStart, brushEnd);
+    brushCircles(brushStart, brushEnd);
+
+    var selection = d3.selectAll('.selected');
 
     if (brush.empty()) {
       if (!selection.empty()) {
@@ -234,7 +236,7 @@ function TimelineChart (element, data, opts) {
 
   function brushEnded () {
     if (!brush.empty()) {
-      opts.onBrushEnd(brush.extent(), d3.selectAll('rect.selected').data());
+      opts.onBrushEnd(brush.extent(), d3.selectAll('.selected').data());
     }
   }
 
@@ -262,13 +264,12 @@ function TimelineChart (element, data, opts) {
       .on('brush', brushed)
       .on('brushend', brushEnded);
 
-    var height = calculateChartHeight(data, opts.barHeight);
     d3.select('#selectable-gantt-chart').append('g')
       .attr('class', 'brush')
       .attr('opacity', '.3')
       .call(brush)
       .selectAll('rect')
-      .attr('height', height);
+      .attr('height', chartHeight);
   }
 
   function removeBrush () {
@@ -286,17 +287,12 @@ function TimelineChart (element, data, opts) {
   }
 
   this.clearBrush = function clearBrush() {
-    d3.selectAll('rect.selected').classed('selected', false);
+    d3.selectAll('.selected').classed('selected', false);
     var brushSelection = d3.selectAll('#selectable-gantt-chart .brush');
     brushSelection.call(brush.clear());
     if (brushSelection.empty()) { addBrush(); }
     disableDragging();
   };
-
-  function calculateChartHeight (data, barHeight) {
-    var labels = extractLabels(data);
-    return labels.length * barHeight;
-  }
 
   function createChart (element, data, opts) {
     var xAxisOffset = chartHeight + 10;
@@ -329,21 +325,43 @@ function TimelineChart (element, data, opts) {
              .attr('y1', opts.barHeight / 2)
              .attr('y2', opts.barHeight / 2);
 
-    chartData.append('g')
-             .attr('id', 'bars')
-             .attr('height', chartHeight)
-             .selectAll('rect')
-             .data(data)
-             .enter()
-             .append('rect')
-             .on('click', rectClicked)
-             .attr('class', 'bar')
-             .attr('x', function (d) {
-               return timeScale(new Date(d.startedAt * 1000));
-             })
-             .attr('y', computeBarY)
-             .attr('height', opts.barHeight)
-             .attr('width', computeBarWidth);
+    var chartDataGroup = chartData.append('g').attr('height', chartHeight);
+
+    function intervals (d) {
+      return d.hasOwnProperty('startedAt');
+    }
+
+    function instances (d) {
+      return d.hasOwnProperty('at');
+    }
+
+    chartDataGroup
+      .selectAll('rect')
+      .data(data.filter(intervals))
+      .enter()
+      .append('rect')
+      .on('click', rectClicked)
+      .attr('class', 'bar')
+      .attr('x', function (d) {
+        return timeScale(new Date(d.startedAt * 1000));
+      })
+      .attr('y', computeBarY)
+      .attr('height', opts.barHeight)
+      .attr('width', computeBarWidth);
+
+    chartDataGroup
+      .selectAll('circle')
+      .data(data.filter(instances))
+      .enter()
+      .append('circle')
+      .attr('class', 'instance')
+      .attr('cx', function (d) {
+        return timeScale(new Date(d.at * 1000));
+      })
+      .attr('cy', function (d) {
+        return labelsScale(d.label) + opts.barHeight / 2;
+      })
+      .attr('r', 2);
   }
 
   createChart(element, data, opts);

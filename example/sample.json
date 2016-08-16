@@ -43,5 +43,13 @@
     "label": "running",
     "startedAt": 1467783800,
     "endedAt": 1467786800
+  },
+  {
+    "label": "coffee",
+    "at": 1467783800
+  },
+  {
+    "label": "coffee",
+    "at": 1467830094
   }
 ]
