@@ -4,10 +4,10 @@ var DateCalculator = require('./lib/date.calculator');
 var DataHelper = require('./lib/data.helper');
 
 function TimelineChart (element, data, opts) {
-  function initialize (element, data, opts) {
+  function initialize (element, events, opts) {
     opts              = opts || {};
-    opts.minDate      = opts.minDate || DateCalculator.minDate(data.events);
-    opts.maxDate      = opts.maxDate || DateCalculator.maxDate(data.events);
+    opts.minDate      = opts.minDate || DateCalculator.minDate(events);
+    opts.maxDate      = opts.maxDate || DateCalculator.maxDate(events);
     opts.leftPad      = opts.leftPad || 80;
     opts.barHeight    = opts.barHeight || 25;
     opts.xAxisHeight  = opts.xAxisHeight || 60;
@@ -21,7 +21,7 @@ function TimelineChart (element, data, opts) {
     return opts;
   }
 
-  opts = initialize(element, data, opts);
+  opts = initialize(element, data.events, opts);
 
   var labels         = DataHelper.labels(data);
   var events         = data.events;

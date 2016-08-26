@@ -23,5 +23,11 @@ describe('Data Helper', function () {
       var labels = DataHelper.labels({ labels: ['foo'], events: [bar] });
       expect(labels).toEqual(['foo', 'bar']);
     });
+
+    it('removes duplicate keys', function () {
+      var bar = { label: 'bar' };
+      var labels = DataHelper.labels({ labels: ['foo', 'bar'], events: [bar] });
+      expect(labels).toEqual(['foo', 'bar']);
+    });
   });
 });
