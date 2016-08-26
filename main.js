@@ -6,8 +6,8 @@ var DataHelper = require('./lib/data.helper');
 function TimelineChart (element, data, opts) {
   function initialize (element, data, opts) {
     opts              = opts || {};
-    opts.minDate      = opts.minDate || DateCalculator.minDate(data);
-    opts.maxDate      = opts.maxDate || DateCalculator.maxDate(data);
+    opts.minDate      = opts.minDate || DateCalculator.minDate(data.events);
+    opts.maxDate      = opts.maxDate || DateCalculator.maxDate(data.events);
     opts.leftPad      = opts.leftPad || 80;
     opts.barHeight    = opts.barHeight || 25;
     opts.xAxisHeight  = opts.xAxisHeight || 60;
@@ -24,6 +24,7 @@ function TimelineChart (element, data, opts) {
   opts = initialize(element, data, opts);
 
   var labels         = DataHelper.labels(data);
+  var events         = data.events;
   var brush          = d3.svg.brush();
   var chartHeight    = labels.length * opts.barHeight;
   var svgHeight      = chartHeight + opts.xAxisHeight;
@@ -84,7 +85,7 @@ function TimelineChart (element, data, opts) {
       var newBar = bar.expandLeft(newValue.time);
 
       if (newValue.time >= bar.endedAt) { return; }
-      if (OverlapDetector.isOverlapping(newBar, data)) { return; }
+      if (OverlapDetector.isOverlapping(newBar, events)) { return; }
 
       d.startedAt = newValue.time;
 
@@ -104,7 +105,7 @@ function TimelineChart (element, data, opts) {
       var newBar = bar.expandRight(newValue.time);
 
       if (newValue.time <= d.startedAt) { return; }
-      if (OverlapDetector.isOverlapping(newBar, data)) { return; }
+      if (OverlapDetector.isOverlapping(newBar, events)) { return; }
 
       d.endedAt = newValue.time;
 
@@ -294,7 +295,7 @@ function TimelineChart (element, data, opts) {
     disableDragging();
   };
 
-  function createChart (element, data, opts) {
+  function createChart (element, events, opts) {
     var xAxisOffset = chartHeight + 10;
     var xAxis = d3.svg.axis()
                       .ticks(d3.time.hours, 1)
@@ -337,7 +338,7 @@ function TimelineChart (element, data, opts) {
 
     chartDataGroup
       .selectAll('rect')
-      .data(data.filter(intervals))
+      .data(events.filter(intervals))
       .enter()
       .append('rect')
       .on('click', rectClicked)
@@ -351,7 +352,7 @@ function TimelineChart (element, data, opts) {
 
     chartDataGroup
       .selectAll('circle')
-      .data(data.filter(instances))
+      .data(events.filter(instances))
       .enter()
       .append('circle')
       .attr('class', 'instance')
@@ -364,7 +365,7 @@ function TimelineChart (element, data, opts) {
       .attr('r', 2);
   }
 
-  createChart(element, data, opts);
+  createChart(element, events, opts);
 }
 
 module.exports = TimelineChart;
