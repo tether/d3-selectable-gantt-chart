@@ -1,55 +1,58 @@
-[
-  {
-    "label": "sitting",
-    "startedAt": 1467817234,
-    "endedAt": 1467818332
-  },
-  {
-    "label": "sitting",
-    "startedAt": 1467829218,
-    "endedAt": 1467829643
-  },
-  {
-    "label": "driving",
-    "startedAt": 1467836050,
-    "endedAt": 1467836224
-  },
-  {
-    "label": "driving",
-    "startedAt": 1467736050,
-    "endedAt": 1467835500
-  },
-  {
-    "label": "sitting",
-    "startedAt": 1467829774,
-    "endedAt": 1467830194
-  },
-  {
-    "label": "sitting",
-    "startedAt": 1467830323,
-    "endedAt": 1467830469
-  },
-  {
-    "label": "sitting",
-    "startedAt": 1467830962,
-    "endedAt": 1467833150
-  },
-  {
-    "label": "sitting",
-    "startedAt": 1467836754,
-    "endedAt": 1467842349
-  },
-  {
-    "label": "running",
-    "startedAt": 1467783800,
-    "endedAt": 1467786800
-  },
-  {
-    "label": "coffee",
-    "at": 1467783800
-  },
-  {
-    "label": "coffee",
-    "at": 1467830094
-  }
-]
+{
+  "labels": ["sitting", "driving", "running", "coffee", "other"],
+  "events": [
+    {
+      "label": "sitting",
+      "startedAt": 1467817234,
+      "endedAt": 1467818332
+    },
+    {
+      "label": "sitting",
+      "startedAt": 1467829218,
+      "endedAt": 1467829643
+    },
+    {
+      "label": "driving",
+      "startedAt": 1467836050,
+      "endedAt": 1467836224
+    },
+    {
+      "label": "driving",
+      "startedAt": 1467736050,
+      "endedAt": 1467835500
+    },
+    {
+      "label": "sitting",
+      "startedAt": 1467829774,
+      "endedAt": 1467830194
+    },
+    {
+      "label": "sitting",
+      "startedAt": 1467830323,
+      "endedAt": 1467830469
+    },
+    {
+      "label": "sitting",
+      "startedAt": 1467830962,
+      "endedAt": 1467833150
+    },
+    {
+      "label": "sitting",
+      "startedAt": 1467836754,
+      "endedAt": 1467842349
+    },
+    {
+      "label": "running",
+      "startedAt": 1467783800,
+      "endedAt": 1467786800
+    },
+    {
+      "label": "coffee",
+      "at": 1467783800
+    },
+    {
+      "label": "coffee",
+      "at": 1467830094
+    }
+  ]
+}
