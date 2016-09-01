@@ -4,7 +4,8 @@
     { "name": "driving" },
     { "name": "running" },
     { "name": "coffee" },
-    { "name": "other", "editable": true }],
+    { "name": "other", "editable": true }
+  ],
   "events": [
     {
       "label": "sitting",
