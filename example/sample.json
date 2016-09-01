@@ -1,5 +1,10 @@
 {
-  "labels": ["sitting", "driving", "running", "coffee", "other"],
+  "labels": [
+    { "name": "sitting", "editable": false },
+    { "name": "driving" },
+    { "name": "running" },
+    { "name": "coffee" },
+    { "name": "other", "editable": true }],
   "events": [
     {
       "label": "sitting",

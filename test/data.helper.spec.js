@@ -7,7 +7,7 @@ describe('Data Helper', function () {
     });
 
     it('uses `labels` key', function() {
-      var labels = DataHelper.labels({ labels: ['foo', 'bar'] });
+      var labels = DataHelper.labels({ labels: [{ name: 'foo' }, { name: 'bar' }] });
       expect(labels).toEqual(['foo', 'bar']);
     });
 
@@ -20,13 +20,13 @@ describe('Data Helper', function () {
 
     it('merges labels keys with events labels when both are available', function () {
       var bar = { label: 'bar' };
-      var labels = DataHelper.labels({ labels: ['foo'], events: [bar] });
+      var labels = DataHelper.labels({ labels: [{ name: 'foo' }], events: [bar] });
       expect(labels).toEqual(['foo', 'bar']);
     });
 
     it('removes duplicate keys', function () {
       var bar = { label: 'bar' };
-      var labels = DataHelper.labels({ labels: ['foo', 'bar'], events: [bar] });
+      var labels = DataHelper.labels({ labels: [{ name: 'foo' }, { name: 'bar' }], events: [bar] });
       expect(labels).toEqual(['foo', 'bar']);
     });
   });
