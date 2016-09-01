@@ -10,6 +10,8 @@ function TimelineChart (element, data, opts) {
     opts.maxDate      = opts.maxDate || DateCalculator.maxDate(events);
     opts.leftPad      = opts.leftPad || 80;
     opts.barHeight    = opts.barHeight || 25;
+    opts.barPadding   = opts.barPadding || 5;
+    opts.barRoundSize = opts.barRoundSize || 10;
     opts.xAxisHeight  = opts.xAxisHeight || 60;
     opts.margin       = { top: 200, right: 40, bottom: 200, left: 40 };
     opts.width        = element.clientWidth - opts.margin.left - opts.margin.right;
@@ -54,7 +56,7 @@ function TimelineChart (element, data, opts) {
   }
 
   function computeBarY (d) {
-    return labelsScale(d.label);
+    return labelsScale(d.label) + opts.barPadding;
   }
 
   function isBarClicked (obj) {
@@ -140,10 +142,12 @@ function TimelineChart (element, data, opts) {
       };
     }
 
+    var dragBarHeight = opts.barHeight - (opts.barPadding * 2);
+
     var dragBarLeft = selection.append('rect')
       .attr('x', dragBarX('startedAt'))
       .attr('y', computeBarY)
-      .attr('height', opts.barHeight)
+      .attr('height', dragBarHeight)
       .attr('width', dragBarSize)
       .attr('id', 'dragLeft')
       .attr('fill', 'blue')
@@ -154,7 +158,7 @@ function TimelineChart (element, data, opts) {
     var dragBarRight = selection.append('rect')
       .attr('x', dragBarX('endedAt'))
       .attr('y', computeBarY)
-      .attr('height', opts.barHeight)
+      .attr('height', dragBarHeight)
       .attr('width', dragBarSize)
       .attr('id', 'dragRight')
       .attr('fill', 'blue')
@@ -347,7 +351,9 @@ function TimelineChart (element, data, opts) {
         return timeScale(new Date(d.startedAt * 1000));
       })
       .attr('y', computeBarY)
-      .attr('height', opts.barHeight)
+      .attr('rx', opts.barRoundSize)
+      .attr('ry', opts.barRoundSize)
+      .attr('height', opts.barHeight - (opts.barPadding * 2))
       .attr('width', computeBarWidth);
 
     chartDataGroup
