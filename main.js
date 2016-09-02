@@ -67,6 +67,8 @@ function TimelineChart (element, data, opts) {
 
     var label = domain[d3.bisect(range, y) - 1];
 
+    if (!DataHelper.isEditable(obj.label, data)) { return false; }
+
     return (obj.label === label);
   }
 
@@ -246,6 +248,8 @@ function TimelineChart (element, data, opts) {
   }
 
   function rectClicked (d) {
+    if (!DataHelper.isEditable(d.label, data)) { return; }
+
     var rects = d3.selectAll('rect.bar');
 
     rects.each(function (bar) {
@@ -340,13 +344,17 @@ function TimelineChart (element, data, opts) {
       return d.hasOwnProperty('at');
     }
 
+    function rectClass (d) {
+      return 'bar ' + (DataHelper.isEditable(d.label, data) ? 'editable' : 'readonly');
+    }
+
     chartDataGroup
       .selectAll('rect')
       .data(events.filter(intervals))
       .enter()
       .append('rect')
       .on('click', rectClicked)
-      .attr('class', 'bar')
+      .attr('class', rectClass)
       .attr('x', function (d) {
         return timeScale(new Date(d.startedAt * 1000));
       })
