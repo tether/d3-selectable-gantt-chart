@@ -32,8 +32,12 @@ describe('Data Helper', function () {
   });
 
   describe('is editable', function () {
-    it('sets editable as default', function () {
+    it('sets editable as default when no data', function () {
       expect(DataHelper.isEditable('walking')).toBeTruthy();
+    });
+
+    it('sets editable as default when no labels', function () {
+      expect(DataHelper.isEditable('walking', { labels: undefined })).toBeTruthy();
     });
 
     it('returns editable when editable is true', function () {
