@@ -1,6 +1,6 @@
-# D3 Selectable Gantt Chart
+# D3 Editable Gantt Chart
 
-An example showing how to create a gantt-like chart with minimal [d3](https://d3js.org) brushing
+An example showing how to create a gantt-like chart with minimal [d3](https://d3js.org) editing
 capabilities.
 
 ![Preview Image](https://cloud.githubusercontent.com/assets/680151/17070850/70e1602c-501b-11e6-917b-87a7fd2bbd50.png)
