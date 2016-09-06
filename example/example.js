@@ -9,7 +9,15 @@ clearButton.onclick = function clear () {
   selectionInfo.html('');
   activitiesInfo.html('');
   chart.clear();
+  hideClear();
 };
+
+function toggleClearButton (visible) {
+  document.getElementById('clear').style.display = visible ? 'block' : 'none';
+}
+
+function showClear () { toggleClearButton(true); }
+function hideClear () { toggleClearButton(false); }
 
 function appendItemInformation (item) {
   activitiesInfo.append('dt').text('Label: ' + item.label);
@@ -22,6 +30,7 @@ function appendItemInformation (item) {
 }
 
 function updateBarInfo (item) {
+  showClear();
   activitiesInfo.html('');
   selectionInfo.html('');
   appendItemInformation(item);
