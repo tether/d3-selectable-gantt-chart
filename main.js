@@ -2,6 +2,7 @@ var OverlapDetector = require('./lib/overlap-detector');
 var Bar = require('./lib/bar');
 var DateCalculator = require('./lib/date.calculator');
 var DataHelper = require('./lib/data.helper');
+var Tooltip = require('./lib/tooltip');
 
 function TimelineChart (element, data, opts) {
   function initialize (element, events, opts) {
@@ -226,12 +227,17 @@ function TimelineChart (element, data, opts) {
       return 'bar ' + (DataHelper.isEditable(d.label, data) ? 'editable' : 'readonly');
     }
 
+    var tip = Tooltip.create();
+    baseSVG.call(tip);
+
     chartDataGroup
       .selectAll('rect')
       .data(events.filter(intervals))
       .enter()
       .append('rect')
       .on('click', rectClicked)
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
       .attr('class', rectClass)
       .attr('x', function (d) {
         return timeScale(new Date(d.startedAt * 1000));
@@ -242,11 +248,14 @@ function TimelineChart (element, data, opts) {
       .attr('height', opts.barHeight - (opts.barPadding * 2))
       .attr('width', computeBarWidth);
 
+
     chartDataGroup
       .selectAll('circle')
       .data(events.filter(instances))
       .enter()
       .append('circle')
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
       .attr('class', 'instance')
       .attr('cx', function (d) {
         return timeScale(new Date(d.at * 1000));
