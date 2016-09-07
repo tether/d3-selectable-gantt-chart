@@ -10,12 +10,17 @@ node_modules: package.json
 	@touch $@
 
 .PHONY: serve
-serve: build.example
+serve: install
+	@$(MAKE) build.watch &
 	@ruby -run -e httpd example/ --port=8080
+
+.PHONY: build.watch
+build.watch:
+	@watchify $(example_dir)/example.js --outfile=$(example_dir)/example.dist.js --verbose &
 
 .PHONY: build.example
 build.example: install
-	@browserify $(example_dir)/example.js -o $(example_dir)/example.dist.js
+	@browserify $(example_dir)/example.js --outfile=$(example_dir)/example.dist.js --verbose
 
 .PHONY: lint
 lint: install
