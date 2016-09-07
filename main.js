@@ -2,6 +2,7 @@ var OverlapDetector = require('./lib/overlap-detector');
 var Bar = require('./lib/bar');
 var DateCalculator = require('./lib/date.calculator');
 var DataHelper = require('./lib/data.helper');
+var Tooltip = require('./lib/tooltip');
 
 function TimelineChart (element, data, opts) {
   function initialize (element, events, opts) {
@@ -230,19 +231,20 @@ function TimelineChart (element, data, opts) {
 
     var selection = d3.selectAll('.selected');
 
+    if (!brush.empty()) {
+      opts.onBrush(timeRange, selection.data());
+    }
+  }
+
+  function brushEnded () {
     if (brush.empty()) {
+      var selection = d3.selectAll('.selected');
       if (!selection.empty()) {
         var selectedData = selection.data()[0];
         opts.onBarClicked(selectedData);
         enableDragging(selectedData);
       }
     } else {
-      opts.onBrush(timeRange, selection.data());
-    }
-  }
-
-  function brushEnded () {
-    if (!brush.empty()) {
       opts.onBrushEnd(brush.extent(), d3.selectAll('.selected').data());
     }
   }
@@ -273,7 +275,7 @@ function TimelineChart (element, data, opts) {
       .on('brush', brushed)
       .on('brushend', brushEnded);
 
-    d3.select('#selectable-gantt-chart').append('g')
+    d3.select('#selectable-gantt-chart').insert('g', ':first-child')
       .attr('class', 'brush')
       .attr('opacity', '.3')
       .call(brush)
@@ -348,12 +350,30 @@ function TimelineChart (element, data, opts) {
       return 'bar ' + (DataHelper.isEditable(d.label, data) ? 'editable' : 'readonly');
     }
 
+    var tip = Tooltip.create();
+    baseSVG.call(tip);
+
+    function fixit () {
+      var brushNode = baseSVG.select('.brush').node();
+      if (brushNode) {
+        var fakeMouseEvent = new Event('mousedown');
+        fakeMouseEvent.pageX = d3.event.pageX;
+        fakeMouseEvent.clientX = d3.event.clientX;
+        fakeMouseEvent.pageY = d3.event.pageY;
+        fakeMouseEvent.clientY = d3.event.clientY;
+        brushNode.dispatchEvent(fakeMouseEvent);
+      }
+    }
+
     chartDataGroup
       .selectAll('rect')
       .data(events.filter(intervals))
       .enter()
       .append('rect')
+      .on('mousedown', fixit)
       .on('click', rectClicked)
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
       .attr('class', rectClass)
       .attr('x', function (d) {
         return timeScale(new Date(d.startedAt * 1000));
@@ -369,6 +389,9 @@ function TimelineChart (element, data, opts) {
       .data(events.filter(instances))
       .enter()
       .append('circle')
+      .on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
+      .on('mousedown', fixit)
       .attr('class', 'instance')
       .attr('cx', function (d) {
         return timeScale(new Date(d.at * 1000));
