@@ -4,18 +4,20 @@ var chart;
 var selectionInfo  = d3.select('#selection-info').append('ul');
 var activitiesInfo = d3.select('#selection-info').append('dl');
 
-var clearBrushButton = document.getElementById('clearBrush');
-clearBrushButton.onclick = function clearBrush () {
+var clearButton = document.getElementById('clear');
+clearButton.onclick = function clear () {
   selectionInfo.html('');
   activitiesInfo.html('');
-  chart.clearBrush();
+  chart.clear();
+  hideClear();
 };
 
-function updateSelectionInfo (timeRange) {
-  selectionInfo.html('');
-  selectionInfo.append('li').text('Start date: ' + timeRange[0]);
-  selectionInfo.append('li').text('End date: ' + timeRange[1]);
+function setClearButtonVisibility (visible) {
+  document.getElementById('clear').style.display = visible ? 'block' : 'none';
 }
+
+function showClear () { setClearButtonVisibility(true); }
+function hideClear () { setClearButtonVisibility(false); }
 
 function appendItemInformation (item) {
   activitiesInfo.append('dt').text('Label: ' + item.label);
@@ -27,13 +29,8 @@ function appendItemInformation (item) {
   }
 }
 
-function updateItemsInformation (items) {
-  activitiesInfo.html('');
-
-  items.forEach(appendItemInformation);
-}
-
 function updateBarInfo (item) {
+  showClear();
   activitiesInfo.html('');
   selectionInfo.html('');
   appendItemInformation(item);
@@ -44,12 +41,6 @@ d3.json('http://localhost:8080/sample.json', function (data) {
   var opts = {
     minDate: new Date(2016, 6, 6, 0, 0, 1),
     maxDate: new Date(2016, 6, 6, 23, 59, 59),
-    onBrush: function (timeRange) {
-      updateSelectionInfo(timeRange);
-    },
-    onBrushEnd: function (timeRange, selectedItems) {
-      updateItemsInformation(selectedItems);
-    },
     onBarClicked: updateBarInfo,
     onBarChanged: updateBarInfo
   };
