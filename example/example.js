@@ -12,12 +12,12 @@ clearButton.onclick = function clear () {
   hideClear();
 };
 
-function toggleClearButton (visible) {
+function setClearButtonVisibility (visible) {
   document.getElementById('clear').style.display = visible ? 'block' : 'none';
 }
 
-function showClear () { toggleClearButton(true); }
-function hideClear () { toggleClearButton(false); }
+function showClear () { setClearButtonVisibility(true); }
+function hideClear () { setClearButtonVisibility(false); }
 
 function appendItemInformation (item) {
   activitiesInfo.append('dt').text('Label: ' + item.label);
