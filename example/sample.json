@@ -50,11 +50,13 @@
     {
       "label": "running",
       "startedAt": 1467783800,
-      "endedAt": 1467786800
+      "endedAt": 1467786800,
+      "tooltip": "running 🏃"
     },
     {
       "label": "coffee",
-      "at": 1467783800
+      "at": 1467783800,
+      "tooltip": "custom tooltip"
     },
     {
       "label": "coffee",
