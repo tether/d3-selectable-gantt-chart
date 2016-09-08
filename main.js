@@ -92,7 +92,7 @@ function TimelineChart (element, data, opts) {
       if (newValue.time >= bar.endedAt) { return; }
       if (OverlapDetector.isOverlapping(newBar, events)) { return; }
 
-      d.startedAt = newValue.time;
+      d.startedAt = newBar.startedAt;
 
       d3.select('rect.selected')
         .attr('x', newValue.x)
@@ -112,7 +112,7 @@ function TimelineChart (element, data, opts) {
       if (newValue.time <= d.startedAt) { return; }
       if (OverlapDetector.isOverlapping(newBar, events)) { return; }
 
-      d.endedAt = newValue.time;
+      d.endedAt = newBar.endedAt;
 
       d3.select('rect.selected')
         .attr('width', computeBarWidth);
@@ -122,6 +122,36 @@ function TimelineChart (element, data, opts) {
 
       opts.onBarChanged(newBar);
     }
+
+    function onDragWhole (d) {
+      var bar = new Bar(d);
+      var newValue = newTimeValue(new Date(d.startedAt * 1000));
+      var newBar = bar.move(newValue.time);
+      var maxDateInSeconds = opts.maxDate.getTime() / 1000;
+
+      if (newBar.endedAt > maxDateInSeconds) { return; }
+      if (OverlapDetector.isOverlapping(newBar, events)) { return; }
+
+      d.startedAt = newBar.startedAt;
+      d.endedAt = newBar.endedAt;
+
+      var rectWidth = computeBarWidth(d);
+      d3.select('rect.selected')
+        .attr('x', newValue.x)
+        .attr('width', rectWidth);
+
+      d3.select('rect#dragLeft')
+        .attr('x', newValue.x - (dragBarSize / 2));
+
+      d3.select('rect#dragRight')
+        .attr('x', newValue.x + rectWidth - (dragBarSize / 2));
+
+      opts.onBarChanged(newBar);
+    }
+
+    var dragWhole = d3.behavior.drag()
+      .origin(Object)
+      .on('drag', onDragWhole);
 
     var dragLeft = d3.behavior.drag()
       .origin(Object)
@@ -136,6 +166,10 @@ function TimelineChart (element, data, opts) {
       .selectAll('rect')
       .data([selectedData])
       .enter();
+
+    d3.select('rect.selected')
+      .attr('cursor', 'move')
+      .call(dragWhole);
 
     var dragBarSize = 10;
 
@@ -295,6 +329,9 @@ function TimelineChart (element, data, opts) {
 
   function disableDragging () {
     d3.select('#selectionDragComponent').remove();
+    d3.selectAll('#chart-data .bar')
+      .attr('cursor', 'auto')
+      .on('.drag', null);
   }
 
   this.clearBrush = function clearBrush() {
