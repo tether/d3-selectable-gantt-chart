@@ -1,7 +1,7 @@
-var OverlapDetector = require('./lib/overlap-detector');
-var Bar = require('./lib/bar');
 var DateCalculator = require('./lib/date.calculator');
 var DataHelper = require('./lib/data.helper');
+var Drag = require('./lib/drag');
+var Scales = require('./lib/scales');
 var Tooltip = require('./lib/tooltip');
 
 function TimelineChart (element, data, opts) {
@@ -49,16 +49,7 @@ function TimelineChart (element, data, opts) {
                       .domain(labels)
                       .rangeRoundBands([1, chartHeight]);
 
-  function computeBarWidth (d) {
-    var startedAt = new Date(d.startedAt * 1000);
-    var endedAt = new Date(d.endedAt * 1000);
-
-    return timeScale(endedAt) - timeScale(startedAt);
-  }
-
-  function computeBarY (d) {
-    return labelsScale(d.label) + opts.barPadding;
-  }
+  var scales = new Scales(timeScale, labelsScale, opts.barPadding);
 
   function isBarClicked (obj) {
     var y = d3.mouse(d3.select('g.brush').node())[1];
@@ -71,139 +62,6 @@ function TimelineChart (element, data, opts) {
     if (!DataHelper.isEditable(obj.label, data)) { return false; }
 
     return (obj.label === label);
-  }
-
-  function enableDragging (selectedData) {
-    function newTimeValue (date) {
-      var currentX = timeScale(date);
-      var newX = currentX + d3.event.dx;
-
-      return {
-        x: newX,
-        time: timeScale.invert(newX).getTime() / 1000
-      };
-    }
-
-    function onDragLeft (d) {
-      var bar = new Bar(d);
-      var newValue = newTimeValue(new Date(d.startedAt * 1000));
-      var newBar = bar.expandLeft(newValue.time);
-
-      if (newValue.time >= bar.endedAt) { return; }
-      if (OverlapDetector.isOverlapping(newBar, events)) { return; }
-
-      d.startedAt = newBar.startedAt;
-
-      d3.select('rect.selected')
-        .attr('x', newValue.x)
-        .attr('width', computeBarWidth);
-
-      d3.select('rect#dragLeft')
-        .attr('x', newValue.x - (dragBarSize / 2));
-
-      opts.onBarChanged(newBar);
-    }
-
-    function onDragRight (d) {
-      var bar = new Bar(d);
-      var newValue = newTimeValue(new Date(d.endedAt * 1000));
-      var newBar = bar.expandRight(newValue.time);
-
-      if (newValue.time <= d.startedAt) { return; }
-      if (OverlapDetector.isOverlapping(newBar, events)) { return; }
-
-      d.endedAt = newBar.endedAt;
-
-      d3.select('rect.selected')
-        .attr('width', computeBarWidth);
-
-      d3.select('rect#dragRight')
-        .attr('x', newValue.x - (dragBarSize / 2));
-
-      opts.onBarChanged(newBar);
-    }
-
-    function onDragWhole (d) {
-      var bar = new Bar(d);
-      var newValue = newTimeValue(new Date(d.startedAt * 1000));
-      var newBar = bar.move(newValue.time);
-      var maxDateInSeconds = opts.maxDate.getTime() / 1000;
-
-      if (newBar.endedAt > maxDateInSeconds) { return; }
-      if (OverlapDetector.isOverlapping(newBar, events)) { return; }
-
-      d.startedAt = newBar.startedAt;
-      d.endedAt = newBar.endedAt;
-
-      var rectWidth = computeBarWidth(d);
-      d3.select('rect.selected')
-        .attr('x', newValue.x)
-        .attr('width', rectWidth);
-
-      d3.select('rect#dragLeft')
-        .attr('x', newValue.x - (dragBarSize / 2));
-
-      d3.select('rect#dragRight')
-        .attr('x', newValue.x + rectWidth - (dragBarSize / 2));
-
-      opts.onBarChanged(newBar);
-    }
-
-    var dragWhole = d3.behavior.drag()
-      .origin(Object)
-      .on('drag', onDragWhole);
-
-    var dragLeft = d3.behavior.drag()
-      .origin(Object)
-      .on('drag', onDragLeft);
-
-    var dragRight = d3.behavior.drag()
-      .origin(Object)
-      .on('drag', onDragRight);
-
-    var selection = chartData.append('g')
-      .attr('id', 'selectionDragComponent')
-      .selectAll('rect')
-      .data([selectedData])
-      .enter();
-
-    d3.select('rect.selected')
-      .attr('cursor', 'move')
-      .call(dragWhole);
-
-    var dragBarSize = 10;
-
-    function dragBarX (fieldName) {
-      return function x (d) {
-        return timeScale(new Date(d[fieldName] * 1000)) - (dragBarSize / 2);
-      };
-    }
-
-    var dragBarHeight = opts.barHeight - (opts.barPadding * 2);
-
-    var dragBarLeft = selection.append('rect')
-      .attr('x', dragBarX('startedAt'))
-      .attr('y', computeBarY)
-      .attr('height', dragBarHeight)
-      .attr('width', dragBarSize)
-      .attr('id', 'dragLeft')
-      .attr('fill', 'blue')
-      .attr('fill-opacity', 0.3)
-      .attr('cursor', 'ew-resize')
-      .call(dragLeft);
-
-    var dragBarRight = selection.append('rect')
-      .attr('x', dragBarX('endedAt'))
-      .attr('y', computeBarY)
-      .attr('height', dragBarHeight)
-      .attr('width', dragBarSize)
-      .attr('id', 'dragRight')
-      .attr('fill', 'blue')
-      .attr('fill-opacity', 0.3)
-      .attr('cursor', 'ew-resize')
-      .call(dragRight);
-
-      removeBrush();
   }
 
   function brushBars (brushStart, brushEnd) {
@@ -276,7 +134,8 @@ function TimelineChart (element, data, opts) {
       if (!selection.empty()) {
         var selectedData = selection.data()[0];
         opts.onBarClicked(selectedData);
-        enableDragging(selectedData);
+        Drag.enable(chartData, opts, scales, selectedData, events);
+        removeBrush();
       }
     } else {
       opts.onBrushEnd(brush.extent(), d3.selectAll('.selected').data());
@@ -296,11 +155,9 @@ function TimelineChart (element, data, opts) {
       return bar.selected;
     });
 
-    if (!d3.select('#selectionDragComponent').empty()) {
-      disableDragging();
-    }
-
-    enableDragging(d);
+    Drag.disable();
+    Drag.enable(chartData, opts, scales, d, events);
+    removeBrush();
     opts.onBarClicked(d);
   }
 
@@ -327,19 +184,12 @@ function TimelineChart (element, data, opts) {
     brushSelection.remove();
   }
 
-  function disableDragging () {
-    d3.select('#selectionDragComponent').remove();
-    d3.selectAll('#chart-data .bar')
-      .attr('cursor', 'auto')
-      .on('.drag', null);
-  }
-
   this.clearBrush = function clearBrush() {
     d3.selectAll('.selected').classed('selected', false);
     var brushSelection = d3.selectAll('#selectable-gantt-chart .brush');
     brushSelection.call(brush.clear());
     if (brushSelection.empty()) { addBrush(); }
-    disableDragging();
+    Drag.disable();
   };
 
   function createChart (element, events, opts) {
@@ -390,7 +240,7 @@ function TimelineChart (element, data, opts) {
     var tip = Tooltip.create();
     baseSVG.call(tip);
 
-    function fixit () {
+    function propagateEventToBrush () {
       var brushNode = baseSVG.select('.brush').node();
       if (brushNode) {
         var fakeMouseEvent = new Event('mousedown');
@@ -407,7 +257,7 @@ function TimelineChart (element, data, opts) {
       .data(events.filter(intervals))
       .enter()
       .append('rect')
-      .on('mousedown', fixit)
+      .on('mousedown', propagateEventToBrush)
       .on('click', rectClicked)
       .on('mouseover', tip.show)
       .on('mouseout', tip.hide)
@@ -415,11 +265,11 @@ function TimelineChart (element, data, opts) {
       .attr('x', function (d) {
         return timeScale(new Date(d.startedAt * 1000));
       })
-      .attr('y', computeBarY)
+      .attr('y', scales.computeBarHeight)
       .attr('rx', opts.barRoundSize)
       .attr('ry', opts.barRoundSize)
       .attr('height', opts.barHeight - (opts.barPadding * 2))
-      .attr('width', computeBarWidth);
+      .attr('width', scales.computeBarWidth);
 
     chartDataGroup
       .selectAll('circle')
@@ -428,7 +278,7 @@ function TimelineChart (element, data, opts) {
       .append('circle')
       .on('mouseover', tip.show)
       .on('mouseout', tip.hide)
-      .on('mousedown', fixit)
+      .on('mousedown', propagateEventToBrush)
       .attr('class', 'instance')
       .attr('cx', function (d) {
         return timeScale(new Date(d.at * 1000));

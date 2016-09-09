@@ -1,4 +1,4 @@
-var OverlapDetector = require('../lib/overlap-detector');
+var OverlapDetector = require('../lib/overlap.detector');
 
 describe('isOverlapping', function () {
   var bar = {
