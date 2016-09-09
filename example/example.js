@@ -51,7 +51,8 @@ d3.json('http://localhost:8080/sample.json', function (data) {
       updateItemsInformation(selectedItems);
     },
     onBarClicked: updateBarInfo,
-    onBarChanged: updateBarInfo
+    onBarChanged: updateBarInfo,
+    onBarCreated: function () { console.log('bar created', arguments); }
   };
 
   chart = new TimelineChart(chartElement, data, opts);

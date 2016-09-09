@@ -4,6 +4,8 @@ var Drag = require('./lib/drag');
 var Scales = require('./lib/scales');
 var Tooltip = require('./lib/tooltip');
 
+function noop () {}
+
 function TimelineChart (element, data, opts) {
   function initialize (element, events, opts) {
     opts              = opts || {};
@@ -16,10 +18,11 @@ function TimelineChart (element, data, opts) {
     opts.xAxisHeight  = opts.xAxisHeight || 60;
     opts.margin       = { top: 200, right: 40, bottom: 200, left: 40 };
     opts.width        = element.clientWidth - opts.margin.left - opts.margin.right;
-    opts.onBarClicked = opts.onBarClicked || function () {};
-    opts.onBarChanged = opts.onBarChanged || function () {};
-    opts.onBrush      = opts.onBrush || function() {};
-    opts.onBrushEnd   = opts.onBrushEnd || function() {};
+    opts.onBarClicked = opts.onBarClicked || noop;
+    opts.onBarChanged = opts.onBarChanged || noop;
+    opts.onBarCreated = opts.onBarCreated || noop;
+    opts.onBrush      = opts.onBrush || noop;
+    opts.onBrushEnd   = opts.onBrushEnd || noop;
 
     return opts;
   }
@@ -51,20 +54,19 @@ function TimelineChart (element, data, opts) {
 
   var scales = new Scales(timeScale, labelsScale, opts.barPadding);
 
-  function isBarClicked (obj) {
+  function getBrushedLabel () {
     var y = d3.mouse(d3.select('g.brush').node())[1];
-
     var domain = labelsScale.domain();
     var range = labelsScale.range();
-
-    var label = domain[d3.bisect(range, y) - 1];
-
-    if (!DataHelper.isEditable(obj.label, data)) { return false; }
-
-    return (obj.label === label);
+    return domain[d3.bisect(range, y) - 1];
   }
 
-  function brushBars (brushStart, brushEnd) {
+  function isBarClicked (obj) {
+    if (!DataHelper.isEditable(obj.label, data)) { return false; }
+    return (obj.label === getBrushedLabel());
+  }
+
+  function updateBarSelection (brushStart, brushEnd) {
     var rects = d3.selectAll('rect.bar');
 
     rects.each(function (bar) {
@@ -96,7 +98,7 @@ function TimelineChart (element, data, opts) {
     });
   }
 
-  function brushCircles (brushStart, brushEnd) {
+  function updateCircleSelection (brushStart, brushEnd) {
     var circles = d3.selectAll('circle.instance');
 
     circles.each(function (circle) {
@@ -118,12 +120,11 @@ function TimelineChart (element, data, opts) {
     var brushStart = Math.floor(timeRange[0].getTime() / 1000);
     var brushEnd   = Math.floor(timeRange[1].getTime() / 1000);
 
-    brushBars(brushStart, brushEnd);
-    brushCircles(brushStart, brushEnd);
-
-    var selection = d3.selectAll('.selected');
+    updateBarSelection(brushStart, brushEnd);
+    updateCircleSelection(brushStart, brushEnd);
 
     if (!brush.empty()) {
+      var selection = d3.selectAll('.selected');
       opts.onBrush(timeRange, selection.data());
     }
   }
@@ -136,6 +137,18 @@ function TimelineChart (element, data, opts) {
         opts.onBarClicked(selectedData);
         Drag.enable(chartData, opts, scales, selectedData, events);
         removeBrush();
+      } else {
+        var label = getBrushedLabel();
+        if (!DataHelper.isEditable(label, data)) { return false; }
+        var newBar = {
+          startedAt: brush.extent()[0].getTime() / 1000,
+          endedAt: brush.extent()[1].getTime() / 1000 + 600,
+          label: label
+        };
+        events.push(newBar);
+        opts.onBarCreated(newBar);
+        renderEvents(chartDataGroup, events);
+        rectClicked(newBar);
       }
     } else {
       opts.onBrushEnd(brush.extent(), d3.selectAll('.selected').data());
@@ -192,39 +205,7 @@ function TimelineChart (element, data, opts) {
     Drag.disable();
   };
 
-  function createChart (element, events, opts) {
-    var xAxisOffset = chartHeight + 10;
-    var xAxis = d3.svg.axis()
-                      .ticks(d3.time.hours, 1)
-                      .scale(timeScale)
-                      .tickSize(xAxisOffset * -1, 0, 0);
-
-    var yAxis = d3.svg.axis()
-                      .tickPadding([10])
-                      .orient('right')
-                      .scale(labelsScale);
-
-    addBrush();
-
-    chartData.append('g')
-             .attr('class', 'xaxis')
-             .attr('transform', 'translate(0,' + xAxisOffset + ')')
-             .call(xAxis);
-
-    chartData.append('g')
-             .attr('class', 'yaxis')
-             .attr('transform', 'translate(0, 0)')
-             .call(yAxis);
-
-    chartData.selectAll('.yaxis line')
-             .attr('stroke', 'black')
-             .attr('x1', 0)
-             .attr('x2', opts.width)
-             .attr('y1', opts.barHeight / 2)
-             .attr('y2', opts.barHeight / 2);
-
-    var chartDataGroup = chartData.append('g').attr('height', chartHeight);
-
+  function renderEvents (chartDataGroup, events) {
     function intervals (d) {
       return d.hasOwnProperty('startedAt');
     }
@@ -256,40 +237,75 @@ function TimelineChart (element, data, opts) {
       .selectAll('rect')
       .data(events.filter(intervals))
       .enter()
-      .append('rect')
-      .on('mousedown', propagateEventToBrush)
-      .on('click', rectClicked)
-      .on('mouseover', tip.show)
-      .on('mouseout', tip.hide)
-      .attr('class', rectClass)
-      .attr('x', function (d) {
-        return timeScale(new Date(d.startedAt * 1000));
-      })
-      .attr('y', scales.computeBarHeight)
-      .attr('rx', opts.barRoundSize)
-      .attr('ry', opts.barRoundSize)
-      .attr('height', opts.barHeight - (opts.barPadding * 2))
-      .attr('width', scales.computeBarWidth);
+        .append('rect')
+        .on('mousedown', propagateEventToBrush)
+        .on('click', rectClicked)
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide)
+        .attr('class', rectClass)
+        .attr('x', function (d) {
+          return timeScale(new Date(d.startedAt * 1000));
+        })
+        .attr('y', scales.computeBarHeight)
+        .attr('rx', opts.barRoundSize)
+        .attr('ry', opts.barRoundSize)
+        .attr('height', opts.barHeight - (opts.barPadding * 2))
+        .attr('width', scales.computeBarWidth);
 
     chartDataGroup
       .selectAll('circle')
       .data(events.filter(instances))
       .enter()
-      .append('circle')
-      .on('mouseover', tip.show)
-      .on('mouseout', tip.hide)
-      .on('mousedown', propagateEventToBrush)
-      .attr('class', 'instance')
-      .attr('cx', function (d) {
-        return timeScale(new Date(d.at * 1000));
-      })
-      .attr('cy', function (d) {
-        return labelsScale(d.label) + opts.barHeight / 2;
-      })
-      .attr('r', 2);
+        .append('circle')
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide)
+        .on('mousedown', propagateEventToBrush)
+        .attr('class', 'instance')
+        .attr('cx', function (d) {
+          return timeScale(new Date(d.at * 1000));
+        })
+        .attr('cy', function (d) {
+          return labelsScale(d.label) + opts.barHeight / 2;
+        })
+        .attr('r', 2);
   }
 
-  createChart(element, events, opts);
+  function createChart (element, events, opts) {
+    var xAxisOffset = chartHeight + 10;
+    var xAxis = d3.svg.axis()
+                      .ticks(d3.time.hours, 1)
+                      .scale(timeScale)
+                      .tickSize(xAxisOffset * -1, 0, 0);
+
+    var yAxis = d3.svg.axis()
+                      .tickPadding([10])
+                      .orient('right')
+                      .scale(labelsScale);
+
+    addBrush();
+
+    chartData.append('g')
+             .attr('class', 'xaxis')
+             .attr('transform', 'translate(0,' + xAxisOffset + ')')
+             .call(xAxis);
+
+    chartData.append('g')
+             .attr('class', 'yaxis')
+             .attr('transform', 'translate(0, 0)')
+             .call(yAxis);
+
+    chartData.selectAll('.yaxis line')
+             .attr('stroke', 'black')
+             .attr('x1', 0)
+             .attr('x2', opts.width)
+             .attr('y1', opts.barHeight / 2)
+             .attr('y2', opts.barHeight / 2);
+
+    return chartData.append('g').attr('height', chartHeight);
+  }
+
+  var chartDataGroup = createChart(element, events, opts);
+  renderEvents(chartDataGroup, events);
 }
 
 module.exports = TimelineChart;
