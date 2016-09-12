@@ -8,57 +8,68 @@
   ],
   "events": [
     {
+      "id": 1,
       "label": "sitting",
       "startedAt": 1467817234,
       "endedAt": 1467818332
     },
     {
+      "id": 2,
       "label": "sitting",
       "startedAt": 1467829218,
       "endedAt": 1467829643
     },
     {
+      "id": 3,
       "label": "driving",
       "startedAt": 1467836050,
       "endedAt": 1467846224
     },
     {
+      "id": 4,
       "label": "driving",
       "startedAt": 1467784801,
       "endedAt": 1467835500
     },
     {
+      "id": 5,
       "label": "sitting",
       "startedAt": 1467829774,
       "endedAt": 1467830194
     },
     {
+      "id": 6,
       "label": "sitting",
       "startedAt": 1467830323,
       "endedAt": 1467830469
     },
     {
+      "id": 7,
       "label": "sitting",
       "startedAt": 1467830962,
       "endedAt": 1467833150
     },
     {
+      "id": 8,
       "label": "sitting",
       "startedAt": 1467836754,
       "endedAt": 1467842349
     },
     {
+      "id": 9,
       "label": "running",
       "startedAt": 1467783800,
       "endedAt": 1467786800,
       "tooltip": "running 🏃"
     },
     {
+      "id": 10,
       "label": "coffee",
       "at": 1467783800,
       "tooltip": "custom tooltip"
     },
     {
+      "id": 11,
       "label": "coffee",
       "at": 1467830094
     }

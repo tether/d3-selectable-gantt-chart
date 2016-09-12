@@ -18,6 +18,7 @@ function updateSelectionInfo (timeRange) {
 }
 
 function appendItemInformation (item) {
+  activitiesInfo.append('dt').text('ID: ' + item.id);
   activitiesInfo.append('dt').text('Label: ' + item.label);
   if (item.hasOwnProperty('startedAt')) {
     activitiesInfo.append('dd').text('Bar start: ' + new Date(item.startedAt * 1000));
@@ -39,6 +40,12 @@ function updateBarInfo (item) {
   appendItemInformation(item);
 }
 
+var ID = 999;
+function createBar (barAttrs) {
+  barAttrs.id = ID++;
+  return barAttrs;
+}
+
 d3.json('http://localhost:8080/sample.json', function (data) {
   var chartElement = document.getElementById('chart');
   var opts = {
@@ -52,7 +59,7 @@ d3.json('http://localhost:8080/sample.json', function (data) {
     },
     onBarClicked: updateBarInfo,
     onBarChanged: updateBarInfo,
-    onBarCreated: function () { console.log('bar created', arguments); }
+    onBarCreated: createBar
   };
 
   chart = new TimelineChart(chartElement, data, opts);
