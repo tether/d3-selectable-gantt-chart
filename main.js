@@ -1,3 +1,4 @@
+var Bar = require('./lib/bar');
 var DateCalculator = require('./lib/date.calculator');
 var DataHelper = require('./lib/data.helper');
 var Drag = require('./lib/drag');
@@ -132,21 +133,17 @@ function TimelineChart (element, data, opts) {
   function brushEnded () {
     if (brush.empty()) {
       var selection = d3.selectAll('.selected');
-      if (!selection.empty()) {
-        var selectedData = selection.data()[0];
-        opts.onBarClicked(selectedData);
-        Drag.enable(chartData, opts, scales, selectedData, events);
-        removeBrush();
-      } else {
+      if (selection.empty()) {
         var label = getBrushedLabel();
         if (!DataHelper.isEditable(label, data)) { return false; }
-        var newBar = {
+
+        var barAttrs = {
           startedAt: brush.extent()[0].getTime() / 1000,
           endedAt: brush.extent()[1].getTime() / 1000 + 600,
           label: label
         };
+        var newBar = opts.onBarCreated(barAttrs);
         events.push(newBar);
-        opts.onBarCreated(newBar);
         renderEvents(chartDataGroup, events);
         rectClicked(newBar);
       }
@@ -171,7 +168,7 @@ function TimelineChart (element, data, opts) {
     Drag.disable();
     Drag.enable(chartData, opts, scales, d, events);
     removeBrush();
-    opts.onBarClicked(d);
+    opts.onBarClicked(new Bar(d));
   }
 
   function addBrush () {
