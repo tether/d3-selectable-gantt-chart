@@ -59,6 +59,7 @@ d3.json('http://localhost:8080/sample.json', function (data) {
     },
     onBarClicked: updateBarInfo,
     onBarChanged: updateBarInfo,
+    onBarEdited: function (bar) { console.log('bar edited:', bar); },
     onBarCreated: createBar
   };
 

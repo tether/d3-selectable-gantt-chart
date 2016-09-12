@@ -21,6 +21,7 @@ function TimelineChart (element, data, opts) {
     opts.width        = element.clientWidth - opts.margin.left - opts.margin.right;
     opts.onBarClicked = opts.onBarClicked || noop;
     opts.onBarChanged = opts.onBarChanged || noop;
+    opts.onBarEdited  = opts.onBarEdited || noop;
     opts.onBarCreated = opts.onBarCreated || noop;
     opts.onBrush      = opts.onBrush || noop;
     opts.onBrushEnd   = opts.onBrushEnd || noop;
