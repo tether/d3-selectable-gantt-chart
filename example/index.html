@@ -8,7 +8,8 @@
         font-family: sans-serif;
       }
 
-      #chart { width: 100%; }
+      #chart_wrapper { overflow: scroll; }
+      #chart { width: 2000px; }
 
       ul { list-style: none; }
 
@@ -29,9 +30,12 @@
       }
     </style>
   </head>
+
   <body>
     <h2>Chart</h2>
-    <div id="chart"></div>
+    <div id="chart_wrapper">
+      <div id="chart"></div>
+    </div>
     <div id="selection-info"></div>
 
     <a href="#" id="clearBrush">Clear brush</a>
