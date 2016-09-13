@@ -17,7 +17,7 @@ function TimelineChart (element, data, opts) {
     opts.barRoundSize = opts.barRoundSize || 10;
     opts.xAxisHeight  = opts.xAxisHeight || 60;
     opts.margin       = { top: 200, right: 40, bottom: 200, left: 40 };
-    opts.width        = element.clientWidth - opts.margin.left - opts.margin.right;
+    opts.width        = (element.clientWidth - opts.margin.left - opts.margin.right) * 3.2;
     opts.onBarClicked = opts.onBarClicked || noop;
     opts.onBarChanged = opts.onBarChanged || noop;
     opts.onBarCreated = opts.onBarCreated || noop;
