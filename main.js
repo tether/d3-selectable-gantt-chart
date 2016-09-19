@@ -64,8 +64,7 @@ function TimelineChart (element, data, opts) {
   }
 
   function isBarClicked (obj) {
-    if (!DataHelper.isEditable(obj.label, data)) { return false; }
-    return (obj.label === getBrushedLabel());
+    return obj.label === getBrushedLabel();
   }
 
   function updateBarSelection (brushStart, brushEnd) {
@@ -154,8 +153,6 @@ function TimelineChart (element, data, opts) {
   }
 
   function rectClicked (d) {
-    if (!DataHelper.isEditable(d.label, data)) { return; }
-
     var rects = d3.selectAll('rect.bar');
 
     rects.each(function (bar) {
@@ -167,8 +164,12 @@ function TimelineChart (element, data, opts) {
     });
 
     Drag.disable();
-    Drag.enable(chartData, opts, scales, d, events);
     removeBrush();
+
+    if (DataHelper.isEditable(d.label, data)) {
+      Drag.enable(chartData, opts, scales, d, events);
+    }
+
     opts.onBarClicked(new Bar(d));
   }
 
