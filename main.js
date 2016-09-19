@@ -196,6 +196,11 @@ function TimelineChart (element, data, opts) {
     brushSelection.remove();
   }
 
+  this.deleteSelectedBar = function deleteSelectedBar () {
+    var rects = d3.selectAll('rect.bar');
+    var selectedBar = rects.filter(function (bar) { return bar.selected; }).remove();
+  };
+
   this.clearBrush = function clearBrush() {
     d3.selectAll('.selected').classed('selected', false);
     var brushSelection = d3.selectAll('#selectable-gantt-chart .brush');
