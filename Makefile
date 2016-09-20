@@ -30,3 +30,7 @@ lint: install
 .PHONY: test
 test: install lint
 	@jasmine-node test/
+
+.PHONY: dist
+dist:
+	npm publish
